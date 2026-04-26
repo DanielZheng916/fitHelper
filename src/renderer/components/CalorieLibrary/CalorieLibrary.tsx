@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface CalorieItem {
   id: number;
@@ -15,6 +16,7 @@ type Category = '主食' | '小食' | '酒';
 const CATEGORIES: Category[] = ['主食', '小食', '酒'];
 
 export default function CalorieLibrary() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<CalorieItem[]>([]);
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -45,6 +47,15 @@ export default function CalorieLibrary() {
       }
     })();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = () => {
+      setEditingId(null);
+      setShowAdd(false);
+    };
+    document.addEventListener('fithelper:escape', handleEscape);
+    return () => document.removeEventListener('fithelper:escape', handleEscape);
   }, []);
 
   const filtered = items.filter((i) =>
@@ -117,16 +128,16 @@ export default function CalorieLibrary() {
   return (
     <div>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
-        热量参考库{' '}
+        {t('calorie.title')}{' '}
         <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-          Calorie Library
+          {t('calorie.subtitle')}
         </span>
       </h1>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, alignItems: 'center' }}>
         <input
           type="text"
-          placeholder="搜索 / Search..."
+          placeholder={t('calorie.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ ...inputStyle, flex: 1 }}
@@ -142,7 +153,7 @@ export default function CalorieLibrary() {
             fontWeight: 600,
           }}
         >
-          + 添加
+          {t('calorie.add')}
         </button>
       </div>
 
@@ -159,21 +170,21 @@ export default function CalorieLibrary() {
           }}
         >
           <div>
-            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 4 }}>名称</label>
+            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 4 }}>{t('calorie.name')}</label>
             <input value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
           </div>
           <div>
-            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 4 }}>热量 (kcal)</label>
+            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 4 }}>{t('calorie.calories')}</label>
             <input value={newCalories} onChange={(e) => setNewCalories(e.target.value)} style={inputStyle} />
           </div>
           <div>
-            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 4 }}>分类</label>
+            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 4 }}>{t('calorie.category')}</label>
             <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as Category)} style={inputStyle}>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <button onClick={handleAdd} style={{ ...btnStyle, color: 'var(--color-accent)', borderColor: 'var(--color-accent)' }}>确定</button>
-          <button onClick={() => setShowAdd(false)} style={btnStyle}>取消</button>
+          <button onClick={handleAdd} style={{ ...btnStyle, color: 'var(--color-accent)', borderColor: 'var(--color-accent)' }}>{t('calorie.confirm')}</button>
+          <button onClick={() => setShowAdd(false)} style={btnStyle}>{t('calorie.cancel')}</button>
         </div>
       )}
 

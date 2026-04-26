@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "FitHelper"
+  },
+  "sidebar": {
+    "tool1": "配速转换器",
+    "tool2": "热量参考库",
+    "tool3": "每日热量追踪",
+    "tool4": "训练日志 + AI教练",
+    "langToggle": "EN"
+  },
+  "converter": {
+    "title": "配速转换器",
+    "subtitle": "Pace Converter",
+    "swap": "⇄",
+    "recentTitle": "近期转换",
+    "noHistory": "暂无转换记录",
+    "invalidInput": "输入无效"
+  },
+  "calorie": {
+    "title": "热量参考库",
+    "subtitle": "Calorie Library",
+    "search": "搜索...",
+    "add": "+ 添加",
+    "name": "名称",
+    "calories": "热量 (kcal)",
+    "category": "分类",
+    "confirm": "确定",
+    "cancel": "取消"
+  },
+  "daily": {
+    "title": "每日热量追踪",
+    "subtitle": "Daily Tracker",
+    "date": "日期",
+    "target": "目标",
+    "kcal": "kcal",
+    "addFromLib": "+ 从库添加",
+    "addManual": "+ 手动添加",
+    "addBtn": "添加",
+    "namePlaceholder": "名称",
+    "calPlaceholder": "热量",
+    "remaining": "还差 {{count}} kcal，建议:",
+    "addToList": "+ 添加"
+  },
+  "training": {
+    "title": "训练日志 + AI教练",
+    "subtitle": "Training Log",
+    "records": "训练记录",
+    "plan": "训练计划",
+    "aiCoach": "AI 教练",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "noSuggestion": "保存训练数据以获取AI教练建议。"
+  },
+  "toast": {
+    "saved": "已保存",
+    "deleted": "已删除",
+    "error": "操作失败"
+  }
+}

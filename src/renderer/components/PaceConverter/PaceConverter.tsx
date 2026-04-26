@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface HistoryRecord {
   id: number;
@@ -14,6 +15,7 @@ function formatUnit(unit: string): string {
 }
 
 export default function PaceConverter() {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [fromUnit, setFromUnit] = useState<'mph' | 'min_km'>('mph');
   const [result, setResult] = useState('');
@@ -26,7 +28,7 @@ export default function PaceConverter() {
       const data = await window.electronAPI.converter.getHistory();
       setHistory(data);
     } catch {
-      /* ignore in dev when electronAPI is unavailable */
+      /* electronAPI unavailable in dev */
     }
   }, []);
 
@@ -58,11 +60,11 @@ export default function PaceConverter() {
           loadHistory();
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Invalid input');
+        setError(e instanceof Error ? e.message : t('converter.invalidInput'));
         setResult('');
       }
     },
-    [loadHistory]
+    [loadHistory, t]
   );
 
   const handleInputChange = (value: string) => {
@@ -84,7 +86,10 @@ export default function PaceConverter() {
   return (
     <div>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
-        配速转换器 <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>Pace Converter</span>
+        {t('converter.title')}{' '}
+        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>
+          {t('converter.subtitle')}
+        </span>
       </h1>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
@@ -124,7 +129,7 @@ export default function PaceConverter() {
             fontSize: 'var(--font-size-lg)',
           }}
         >
-          ⇄
+          {t('converter.swap')}
         </button>
 
         <div>
@@ -157,11 +162,11 @@ export default function PaceConverter() {
 
       <div style={{ marginTop: 32 }}>
         <h3 style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-secondary)', marginBottom: 12 }}>
-          Recent Conversions
+          {t('converter.recentTitle')}
         </h3>
         {history.length === 0 ? (
           <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-            No conversions yet
+            {t('converter.noHistory')}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

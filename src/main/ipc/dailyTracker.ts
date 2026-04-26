@@ -182,15 +182,18 @@ export function registerDailyHandlers(db: Database.Database): void {
     }
   );
 
-  ipcMain.handle('daily:updateItem', async (_event, args: DailyItemRow & { isEaten: boolean }) => {
+  ipcMain.handle('daily:updateItem', async (_event, args: {
+    id: number; name: string; calories: number; isEaten: boolean;
+    sortOrder: number; calorieItemId: number | null;
+  }) => {
     db.prepare(
       'UPDATE daily_items SET name = ?, calories = ?, is_eaten = ?, sort_order = ?, calorie_item_id = ? WHERE id = ?'
     ).run(
       args.name,
       args.calories,
-      args.isEaten ? 1 : (args.is_eaten !== undefined ? args.is_eaten : 0),
-      args.sort_order ?? args.sortOrder,
-      args.calorie_item_id ?? args.calorieItemId,
+      args.isEaten ? 1 : 0,
+      args.sortOrder,
+      args.calorieItemId,
       args.id
     );
   });

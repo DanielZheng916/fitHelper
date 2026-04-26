@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Tab = 'records' | 'plan';
 
 export default function TrainingLog() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('records');
   const [content, setContent] = useState('');
   const [suggestion, setSuggestion] = useState('');
@@ -17,9 +19,7 @@ export default function TrainingLog() {
           activeTab === 'records'
             ? await window.electronAPI.training.getRecords()
             : await window.electronAPI.training.getPlan();
-        if (!cancelled) {
-          setContent(data);
-        }
+        if (!cancelled) setContent(data);
       } catch {
         /* dev fallback */
       }
@@ -93,18 +93,18 @@ export default function TrainingLog() {
   return (
     <div>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
-        训练日志 + AI教练{' '}
+        {t('training.title')}{' '}
         <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-          Training Log
+          {t('training.subtitle')}
         </span>
       </h1>
 
       <div style={{ display: 'flex', gap: 4, marginBottom: -1, position: 'relative', zIndex: 1 }}>
         <button style={tabStyle('records')} onClick={() => setActiveTab('records')}>
-          Records
+          {t('training.records')}
         </button>
         <button style={tabStyle('plan')} onClick={() => setActiveTab('plan')}>
-          Plan
+          {t('training.plan')}
         </button>
       </div>
 
@@ -140,7 +140,7 @@ export default function TrainingLog() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontWeight: 600, color: 'var(--color-accent)' }}>AI Coach</span>
+          <span style={{ fontWeight: 600, color: 'var(--color-accent)' }}>{t('training.aiCoach')}</span>
           <button
             onClick={handleRefresh}
             disabled={loading}
@@ -154,7 +154,7 @@ export default function TrainingLog() {
               fontSize: 'var(--font-size-sm)',
             }}
           >
-            {loading ? '⏳' : '🔄'} Refresh
+            {loading ? '⏳' : '🔄'} {t('training.refresh')}
           </button>
         </div>
         <div
@@ -165,7 +165,7 @@ export default function TrainingLog() {
             fontSize: 'var(--font-size-sm)',
           }}
         >
-          {loading ? 'Loading...' : suggestion || 'Save training data to get AI coaching suggestions.'}
+          {loading ? t('training.loading') : suggestion || t('training.noSuggestion')}
         </div>
       </div>
     </div>

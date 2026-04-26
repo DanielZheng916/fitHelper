@@ -7,7 +7,7 @@
     "dev:renderer": "vite --config vite.config.ts",
     "dev:main": "tsc -p tsconfig.node.json --watch",
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "tsc && vite build && electron-builder",
+    "build": "tsc -p tsconfig.node.json && vite build && electron-builder",
     "lint": "eslint src/ --ext .ts,.tsx",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "FitHelper"
+  },
+  "sidebar": {
+    "tool1": "Pace Converter",
+    "tool2": "Calorie Library",
+    "tool3": "Daily Tracker",
+    "tool4": "Training Log + AI Coach",
+    "langToggle": "中"
+  },
+  "converter": {
+    "title": "Pace Converter",
+    "subtitle": "配速转换器",
+    "swap": "⇄",
+    "recentTitle": "Recent Conversions",
+    "noHistory": "No conversions yet",
+    "invalidInput": "Invalid input"
+  },
+  "calorie": {
+    "title": "Calorie Library",
+    "subtitle": "热量参考库",
+    "search": "Search...",
+    "add": "+ Add",
+    "name": "Name",
+    "calories": "Calories (kcal)",
+    "category": "Category",
+    "confirm": "OK",
+    "cancel": "Cancel"
+  },
+  "daily": {
+    "title": "Daily Tracker",
+    "subtitle": "每日热量追踪",
+    "date": "Date",
+    "target": "Target",
+    "kcal": "kcal",
+    "addFromLib": "+ From Library",
+    "addManual": "+ Manual",
+    "addBtn": "Add",
+    "namePlaceholder": "Name",
+    "calPlaceholder": "Calories",
+    "remaining": "{{count}} kcal remaining, suggestion:",
+    "addToList": "+ Add"
+  },
+  "training": {
+    "title": "Training Log + AI Coach",
+    "subtitle": "训练日志 + AI教练",
+    "records": "Records",
+    "plan": "Plan",
+    "aiCoach": "AI Coach",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "noSuggestion": "Save training data to get AI coaching suggestions."
+  },
+  "toast": {
+    "saved": "Saved",
+    "deleted": "Deleted",
+    "error": "Operation failed"
+  }
+}

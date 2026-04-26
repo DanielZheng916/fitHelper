@@ -1,16 +1,26 @@
-interface Tool {
-  id: number;
-  name: string;
-  nameEn: string;
-}
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
-  tools: Tool[];
   activeTool: number;
   onToolChange: (id: number) => void;
 }
 
-export default function Sidebar({ tools, activeTool, onToolChange }: SidebarProps) {
+const TOOL_KEYS = [
+  { id: 1, key: 'sidebar.tool1' },
+  { id: 2, key: 'sidebar.tool2' },
+  { id: 3, key: 'sidebar.tool3' },
+  { id: 4, key: 'sidebar.tool4' },
+];
+
+export default function Sidebar({ activeTool, onToolChange }: SidebarProps) {
+  const { t, i18n } = useTranslation();
+
+  const toggleLang = () => {
+    const next = i18n.language === 'zh' ? 'en' : 'zh';
+    i18n.changeLanguage(next);
+    localStorage.setItem('fithelper-lang', next);
+  };
+
   return (
     <aside
       style={{
@@ -31,10 +41,10 @@ export default function Sidebar({ tools, activeTool, onToolChange }: SidebarProp
           letterSpacing: '-0.5px',
         }}
       >
-        FitHelper
+        {t('app.title')}
       </div>
       <nav style={{ flex: 1 }}>
-        {tools.map((tool) => {
+        {TOOL_KEYS.map((tool) => {
           const isActive = tool.id === activeTool;
           return (
             <button
@@ -54,11 +64,27 @@ export default function Sidebar({ tools, activeTool, onToolChange }: SidebarProp
                 cursor: 'pointer',
               }}
             >
-              {tool.name}
+              {t(tool.key)}
             </button>
           );
         })}
       </nav>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--color-border)' }}>
+        <button
+          onClick={toggleLang}
+          style={{
+            padding: '6px 14px',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: 4,
+            color: 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            fontSize: 'var(--font-size-sm)',
+          }}
+        >
+          {t('sidebar.langToggle')}
+        </button>
+      </div>
     </aside>
   );
 }

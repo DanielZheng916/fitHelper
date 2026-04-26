@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   closestCenter,
@@ -52,13 +53,8 @@ function SortableItem({
   onToggle: (item: DailyItem) => void;
   onDelete: (id: number) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: item.id,
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
 
   return (
     <div
@@ -75,45 +71,23 @@ function SortableItem({
         opacity: item.isEaten ? 1 : 0.7,
       }}
     >
-      <span {...attributes} {...listeners} style={{ cursor: 'grab', color: 'var(--color-text-secondary)' }}>
-        ☰
-      </span>
-      <button
-        onClick={() => onToggle(item)}
-        style={{
-          background: 'none',
-          border: 'none',
-          fontSize: 16,
-          cursor: 'pointer',
-          padding: 0,
-        }}
-      >
+      <span {...attributes} {...listeners} style={{ cursor: 'grab', color: 'var(--color-text-secondary)' }}>☰</span>
+      <button onClick={() => onToggle(item)} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', padding: 0 }}>
         {item.isEaten ? '✅' : '⏳'}
       </button>
       <span style={{ flex: 1, color: item.isEaten ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>
-        {!item.isEaten && '+ '}
-        {item.name}
+        {!item.isEaten && '+ '}{item.name}
       </span>
       <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)', minWidth: 70, textAlign: 'right' }}>
         {item.calories} kcal
       </span>
-      <button
-        onClick={() => onDelete(item.id)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--color-danger)',
-          cursor: 'pointer',
-          fontSize: 'var(--font-size-sm)',
-        }}
-      >
-        ✕
-      </button>
+      <button onClick={() => onDelete(item.id)} style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>✕</button>
     </div>
   );
 }
 
 export default function DailyTracker() {
+  const { t } = useTranslation();
   const [date] = useState(getToday());
   const [target, setTarget] = useState<DailyTarget | null>(null);
   const [targetInput, setTargetInput] = useState('1800');
@@ -129,14 +103,14 @@ export default function DailyTracker() {
 
   const load = useCallback(async () => {
     try {
-      const [t, di, lib, sug] = await Promise.all([
+      const [tgt, di, lib, sug] = await Promise.all([
         window.electronAPI.daily.getTarget(date),
         window.electronAPI.daily.getItems(date),
         window.electronAPI.calorie.getAll(),
         window.electronAPI.daily.suggest(date),
       ]);
-      setTarget(t);
-      if (t) setTargetInput(String(t.targetCalories));
+      setTarget(tgt);
+      if (tgt) setTargetInput(String(tgt.targetCalories));
       setItems(di);
       setLibraryItems(lib);
       setSuggestion(sug);
@@ -149,15 +123,15 @@ export default function DailyTracker() {
     let cancelled = false;
     (async () => {
       try {
-        const [t, di, lib, sug] = await Promise.all([
+        const [tgt, di, lib, sug] = await Promise.all([
           window.electronAPI.daily.getTarget(date),
           window.electronAPI.daily.getItems(date),
           window.electronAPI.calorie.getAll(),
           window.electronAPI.daily.suggest(date),
         ]);
         if (cancelled) return;
-        setTarget(t);
-        if (t) setTargetInput(String(t.targetCalories));
+        setTarget(tgt);
+        if (tgt) setTargetInput(String(tgt.targetCalories));
         setItems(di);
         setLibraryItems(lib);
         setSuggestion(sug);
@@ -206,12 +180,7 @@ export default function DailyTracker() {
       ? Math.max(...libItem.calories.split('/').map((s) => parseInt(s.trim(), 10)))
       : parseInt(libItem.calories, 10);
     await window.electronAPI.daily.addItem({
-      date,
-      name: libItem.name,
-      calories: cal,
-      isEaten: false,
-      sortOrder: 0,
-      calorieItemId: libItem.id,
+      date, name: libItem.name, calories: cal, isEaten: false, sortOrder: 0, calorieItemId: libItem.id,
     });
     setShowLibrary(false);
     load();
@@ -221,12 +190,7 @@ export default function DailyTracker() {
     const cal = parseInt(manualCal, 10);
     if (!manualName.trim() || isNaN(cal)) return;
     await window.electronAPI.daily.addItem({
-      date,
-      name: manualName.trim(),
-      calories: cal,
-      isEaten: false,
-      sortOrder: 0,
-      calorieItemId: null,
+      date, name: manualName.trim(), calories: cal, isEaten: false, sortOrder: 0, calorieItemId: null,
     });
     setManualName('');
     setManualCal('');
@@ -251,13 +215,13 @@ export default function DailyTracker() {
   return (
     <div>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
-        每日热量追踪{' '}
-        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>Daily Tracker</span>
+        {t('daily.title')}{' '}
+        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>{t('daily.subtitle')}</span>
       </h1>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <span style={{ color: 'var(--color-text-secondary)' }}>日期: {date}</span>
-        <span style={{ color: 'var(--color-text-secondary)' }}>目标:</span>
+        <span style={{ color: 'var(--color-text-secondary)' }}>{t('daily.date')}: {date}</span>
+        <span style={{ color: 'var(--color-text-secondary)' }}>{t('daily.target')}:</span>
         <input
           value={targetInput}
           onChange={(e) => setTargetInput(e.target.value)}
@@ -265,14 +229,14 @@ export default function DailyTracker() {
           onKeyDown={(e) => e.key === 'Enter' && handleSetTarget()}
           style={{ ...inputStyle, width: 80, fontFamily: 'var(--font-mono)', textAlign: 'center' }}
         />
-        <span style={{ color: 'var(--color-text-secondary)' }}>kcal</span>
+        <span style={{ color: 'var(--color-text-secondary)' }}>{t('daily.kcal')}</span>
       </div>
 
       {targetCal > 0 && (
         <div style={{ marginBottom: 24, padding: 16, background: 'var(--color-surface)', borderRadius: 8 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-lg)', marginBottom: 8, textAlign: 'center' }}>
             <span style={{ color: barColor, fontWeight: 700 }}>{eatenSum}</span>
-            <span style={{ color: 'var(--color-text-secondary)' }}> / {targetCal} kcal</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}> / {targetCal} {t('daily.kcal')}</span>
           </div>
           <div style={{ background: 'var(--color-border)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
             <div style={{ width: `${Math.min(ratio * 100, 100)}%`, height: '100%', background: barColor, borderRadius: 4, transition: 'width 0.3s ease' }} />
@@ -293,13 +257,13 @@ export default function DailyTracker() {
           onClick={() => { setShowLibrary(!showLibrary); setShowManual(false); }}
           style={{ padding: '8px 16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 6, color: 'var(--color-accent)', cursor: 'pointer' }}
         >
-          + 从库添加
+          {t('daily.addFromLib')}
         </button>
         <button
           onClick={() => { setShowManual(!showManual); setShowLibrary(false); }}
           style={{ padding: '8px 16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 6, color: 'var(--color-text-primary)', cursor: 'pointer' }}
         >
-          + 手动添加
+          {t('daily.addManual')}
         </button>
       </div>
 
@@ -324,16 +288,16 @@ export default function DailyTracker() {
 
       {showManual && (
         <div style={{ display: 'flex', gap: 8, padding: 12, background: 'var(--color-surface)', borderRadius: 8, marginBottom: 16, alignItems: 'flex-end' }}>
-          <input placeholder="名称" value={manualName} onChange={(e) => setManualName(e.target.value)} style={inputStyle} />
-          <input placeholder="热量" value={manualCal} onChange={(e) => setManualCal(e.target.value)} style={{ ...inputStyle, width: 80 }} />
-          <button onClick={handleManualAdd} style={{ padding: '6px 12px', background: 'var(--color-accent)', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}>添加</button>
+          <input placeholder={t('daily.namePlaceholder')} value={manualName} onChange={(e) => setManualName(e.target.value)} style={inputStyle} />
+          <input placeholder={t('daily.calPlaceholder')} value={manualCal} onChange={(e) => setManualCal(e.target.value)} style={{ ...inputStyle, width: 80 }} />
+          <button onClick={handleManualAdd} style={{ padding: '6px 12px', background: 'var(--color-accent)', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}>{t('daily.addBtn')}</button>
         </div>
       )}
 
       {suggestion && targetCal > 0 && eatenSum < targetCal && (
         <div style={{ padding: 16, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)', marginTop: 16 }}>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 8 }}>
-            还差 {targetCal - eatenSum} kcal，建议:
+            {t('daily.remaining', { count: targetCal - eatenSum })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span>🍽 {suggestion.name}</span>
@@ -342,7 +306,7 @@ export default function DailyTracker() {
               onClick={handleAddSuggestion}
               style={{ marginLeft: 'auto', padding: '6px 12px', background: 'var(--color-accent)', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer' }}
             >
-              + 添加
+              {t('daily.addToList')}
             </button>
           </div>
         </div>

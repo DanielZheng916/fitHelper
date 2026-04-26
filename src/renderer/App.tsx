@@ -1,19 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import PaceConverter from './components/PaceConverter/PaceConverter';
 import CalorieLibrary from './components/CalorieLibrary/CalorieLibrary';
 import DailyTracker from './components/DailyTracker/DailyTracker';
 import TrainingLog from './components/TrainingLog/TrainingLog';
-
-const TOOLS = [
-  { id: 1, name: '配速转换器', nameEn: 'Pace Converter' },
-  { id: 2, name: '热量参考库', nameEn: 'Calorie Library' },
-  { id: 3, name: '每日热量追踪', nameEn: 'Daily Tracker' },
-  { id: 4, name: '训练日志 + AI教练', nameEn: 'Training Log' },
-];
+import ToastContainer from './components/Toast';
 
 export default function App() {
   const [activeTool, setActiveTool] = useState(1);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        const num = parseInt(e.key, 10);
+        if (num >= 1 && num <= 4) {
+          e.preventDefault();
+          setActiveTool(num);
+        }
+      }
+      if (e.key === 'Escape') {
+        document.dispatchEvent(new CustomEvent('fithelper:escape'));
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const renderContent = () => {
     switch (activeTool) {
@@ -32,8 +47,9 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar tools={TOOLS} activeTool={activeTool} onToolChange={setActiveTool} />
+      <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
       <main style={{ flex: 1, overflow: 'auto', padding: 32 }}>{renderContent()}</main>
+      <ToastContainer />
     </div>
   );
 }
