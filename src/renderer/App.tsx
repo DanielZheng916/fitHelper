@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import PaceConverter from './components/PaceConverter/PaceConverter';
+import CalorieLibrary from './components/CalorieLibrary/CalorieLibrary';
+import DailyTracker from './components/DailyTracker/DailyTracker';
 
 const TOOLS = [
   { id: 1, name: '配速转换器', nameEn: 'Pace Converter' },
@@ -26,9 +28,9 @@ export default function App() {
       case 1:
         return <PaceConverter />;
       case 2:
-        return <PlaceholderView name="热量参考库 / Calorie Library" />;
+        return <CalorieLibrary />;
       case 3:
-        return <PlaceholderView name="每日热量追踪 / Daily Tracker" />;
+        return <DailyTracker />;
       case 4:
         return <PlaceholderView name="训练日志 + AI教练 / Training Log" />;
       default:
