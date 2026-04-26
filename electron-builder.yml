@@ -1,0 +1,16 @@
+appId: com.fithelper.app
+productName: FitHelper
+mac:
+  category: public.app-category.healthcare-fitness
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**/*
+  - keys/**/*
+  - "!node_modules/**/*"

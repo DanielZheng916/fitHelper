@@ -1,0 +1,8 @@
+node_modules/
+dist/
+release/
+keys/
+.fithelper/
+*.db
+.DS_Store
+.env
