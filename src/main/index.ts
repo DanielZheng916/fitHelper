@@ -1,10 +1,13 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import windowStateKeeper from 'electron-window-state';
 import { getDb } from './db/connection';
 import { runMigrations } from './db/migrations';
 import { seedData } from './db/seed';
 import { registerConverterHandlers } from './ipc/converter';
+import { registerCalorieHandlers } from './ipc/calorieLib';
+import { registerDailyHandlers } from './ipc/dailyTracker';
+import { registerTrainingHandlers } from './ipc/training';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -42,33 +45,15 @@ function createWindow(): void {
   });
 }
 
-function registerStubHandlers(): void {
-  ipcMain.handle('calorie:getAll', async () => []);
-  ipcMain.handle('calorie:create', async () => ({}));
-  ipcMain.handle('calorie:update', async () => ({}));
-  ipcMain.handle('calorie:delete', async () => undefined);
-  ipcMain.handle('daily:getTarget', async () => null);
-  ipcMain.handle('daily:setTarget', async () => undefined);
-  ipcMain.handle('daily:getItems', async () => []);
-  ipcMain.handle('daily:addItem', async () => ({}));
-  ipcMain.handle('daily:updateItem', async () => undefined);
-  ipcMain.handle('daily:deleteItem', async () => undefined);
-  ipcMain.handle('daily:reorder', async () => undefined);
-  ipcMain.handle('daily:suggest', async () => null);
-  ipcMain.handle('training:getRecords', async () => '');
-  ipcMain.handle('training:saveRecords', async () => undefined);
-  ipcMain.handle('training:getPlan', async () => '');
-  ipcMain.handle('training:savePlan', async () => undefined);
-  ipcMain.handle('training:getCoachSuggestion', async () => '');
-}
-
 app.whenReady().then(() => {
   const db = getDb();
   runMigrations(db);
   seedData(db);
 
   registerConverterHandlers(db);
-  registerStubHandlers();
+  registerCalorieHandlers(db);
+  registerDailyHandlers(db);
+  registerTrainingHandlers(db);
   createWindow();
 
   app.on('activate', () => {
