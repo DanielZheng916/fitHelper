@@ -13,4 +13,3 @@ directories:
 files:
   - dist/**/*
   - keys/**/*
-  - "!node_modules/**/*"
