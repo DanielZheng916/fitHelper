@@ -37,7 +37,7 @@ describe('Hash-based caching', () => {
     db.prepare('INSERT INTO ai_coach_history (prompt_hash, response, model) VALUES (?, ?, ?)').run(
       hash,
       'cached suggestion',
-      'gpt-5_2-chat-latest'
+      'gpt-5.2'
     );
 
     const cached = db
@@ -58,10 +58,10 @@ describe('Hash-based caching', () => {
     const h1 = computeHash('plan1', 'records1');
     const h2 = computeHash('plan2', 'records2');
     db.prepare('INSERT INTO ai_coach_history (prompt_hash, response, model) VALUES (?, ?, ?)').run(
-      h1, 'response 1', 'gpt-5_2-chat-latest'
+      h1, 'response 1', 'gpt-5.2'
     );
     db.prepare('INSERT INTO ai_coach_history (prompt_hash, response, model) VALUES (?, ?, ?)').run(
-      h2, 'response 2', 'gpt-5_2-chat-latest'
+      h2, 'response 2', 'gpt-5.2'
     );
 
     const count = (db.prepare('SELECT COUNT(*) as count FROM ai_coach_history').get() as { count: number }).count;

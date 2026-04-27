@@ -168,7 +168,7 @@ flowchart LR
   - Know what to do next without additional research.
   - Avoid injury through pacing guidance.
   - Maximize ability gain based on progress trends.
-- **Model**: `gpt-5_2-chat-latest` via OpenAI API.
+- **Model**: `gpt-5.2` via OpenAI API.
 - **API key**: Read from local file at `keys/open-ai-api-key.txt`.
 
 ---
@@ -352,7 +352,7 @@ Caches recent AI responses to avoid redundant API calls when content hasn't chan
 
 #### Configuration
 
-- **Model**: `gpt-5_2-chat-latest`
+- **Model**: `gpt-5.2`
 - **API key source**: Read from `keys/open-ai-api-key.txt` at app startup. Stored in memory only — never written to the database.
 - **Max tokens (response)**: ~300 tokens (keeps suggestions brief).
 - **Temperature**: 0.7 (balanced between consistency and variety).

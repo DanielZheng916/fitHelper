@@ -523,7 +523,7 @@ Implement all `training:*` channels:
   1. Computes SHA-256 hash of `plan + records`.
   2. If `force === false`, check `ai_coach_history` table for a row with matching `prompt_hash`. If found, return the cached `response`.
   3. Otherwise, call the OpenAI API:
-     - Model: `gpt-5_2-chat-latest`
+     - Model: `gpt-5.2`
      - System message: the prompt from `systemDesign.md` Section 2.5 (the "concise running and fitness coach" prompt).
      - User message: `"Training Plan:\n{plan}\n\nTraining Records:\n{records}"`
      - Max tokens: 300

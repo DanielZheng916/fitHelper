@@ -50,12 +50,12 @@ export async function getCoachSuggestion(
     const client = new OpenAI({ apiKey });
     const messages = buildMessages(plan, records);
     const completion = await client.chat.completions.create({
-      model: 'gpt-5_2-chat-latest',
+      model: 'gpt-5.2',
       messages: [
         { role: 'system', content: messages.system },
         { role: 'user', content: messages.user },
       ],
-      max_tokens: 300,
+      max_completion_tokens: 300,
       temperature: 0.7,
     });
 
@@ -63,7 +63,7 @@ export async function getCoachSuggestion(
 
     db.prepare(
       'INSERT INTO ai_coach_history (prompt_hash, response, model) VALUES (?, ?, ?)'
-    ).run(hash, responseText, 'gpt-5_2-chat-latest');
+    ).run(hash, responseText, 'gpt-5.2');
 
     return responseText;
   } catch (err) {
