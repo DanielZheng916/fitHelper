@@ -40,7 +40,9 @@
     "namePlaceholder": "Name",
     "calPlaceholder": "Calories",
     "remaining": "{{count}} kcal remaining, suggestion:",
-    "addToList": "+ Add"
+    "addToList": "+ Add",
+    "eaten": "Eaten",
+    "planned": "Planned"
   },
   "training": {
     "title": "Training Log + AI Coach",

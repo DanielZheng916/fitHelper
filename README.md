@@ -48,4 +48,4 @@ Produces a `.dmg` installer in the `release/` directory.
 
 ## Version
 
-0.1.2
+0.1.3

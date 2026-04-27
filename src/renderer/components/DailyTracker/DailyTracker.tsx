@@ -41,7 +41,11 @@ interface DailyTarget {
 }
 
 function getToday(): string {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function SortableItem({
@@ -72,8 +76,27 @@ function SortableItem({
       }}
     >
       <span {...attributes} {...listeners} style={{ cursor: 'grab', color: 'var(--color-text-secondary)' }}>☰</span>
-      <button onClick={() => onToggle(item)} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', padding: 0 }}>
-        {item.isEaten ? '✅' : '⏳'}
+      <button
+        onClick={() => onToggle(item)}
+        title={item.isEaten ? 'Mark as planned' : 'Mark as eaten'}
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 4,
+          border: `2px solid ${item.isEaten ? 'var(--color-success)' : 'var(--color-warning)'}`,
+          background: item.isEaten ? 'var(--color-success)' : 'transparent',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          flexShrink: 0,
+          transition: 'all 0.15s ease',
+        }}
+      >
+        {item.isEaten && (
+          <span style={{ color: '#fff', fontSize: 14, lineHeight: 1, fontWeight: 700 }}>✓</span>
+        )}
       </button>
       <span style={{ flex: 1, color: item.isEaten ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>
         {!item.isEaten && '+ '}{item.name}
@@ -123,26 +146,37 @@ export default function DailyTracker() {
     let cancelled = false;
     (async () => {
       try {
-        const [tgt, di, lib, sug] = await Promise.all([
+        const [tgt, di, lib] = await Promise.all([
           window.electronAPI.daily.getTarget(date),
           window.electronAPI.daily.getItems(date),
           window.electronAPI.calorie.getAll(),
-          window.electronAPI.daily.suggest(date),
         ]);
         if (cancelled) return;
+
+        if (!tgt) {
+          await window.electronAPI.daily.setTarget(date, 1800);
+          if (cancelled) return;
+          await load();
+          return;
+        }
+
         setTarget(tgt);
-        if (tgt) setTargetInput(String(tgt.targetCalories));
+        setTargetInput(String(tgt.targetCalories));
         setItems(di);
         setLibraryItems(lib);
+
+        const sug = await window.electronAPI.daily.suggest(date);
+        if (cancelled) return;
         setSuggestion(sug);
       } catch {
         /* dev fallback */
       }
     })();
     return () => { cancelled = true; };
-  }, [date]);
+  }, [date, load]);
 
   const eatenSum = items.filter((i) => i.isEaten).reduce((s, i) => s + i.calories, 0);
+  const plannedSum = items.filter((i) => !i.isEaten).reduce((s, i) => s + i.calories, 0);
   const targetCal = target?.targetCalories ?? 0;
   const ratio = targetCal > 0 ? eatenSum / targetCal : 0;
   const barColor = ratio > 1 ? 'var(--color-danger)' : ratio >= 0.8 ? 'var(--color-warning)' : 'var(--color-success)';
@@ -240,6 +274,14 @@ export default function DailyTracker() {
           </div>
           <div style={{ background: 'var(--color-border)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
             <div style={{ width: `${Math.min(ratio * 100, 100)}%`, height: '100%', background: barColor, borderRadius: 4, transition: 'width 0.3s ease' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ color: 'var(--color-success)' }}>
+              ✅ {t('daily.eaten')}: {eatenSum} {t('daily.kcal')}
+            </span>
+            <span style={{ color: 'var(--color-warning)' }}>
+              ⏳ {t('daily.planned')}: {plannedSum} {t('daily.kcal')}
+            </span>
           </div>
         </div>
       )}

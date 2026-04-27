@@ -40,7 +40,9 @@
     "namePlaceholder": "名称",
     "calPlaceholder": "热量",
     "remaining": "还差 {{count}} kcal，建议:",
-    "addToList": "+ 添加"
+    "addToList": "+ 添加",
+    "eaten": "已吃",
+    "planned": "计划"
   },
   "training": {
     "title": "训练日志 + AI教练",
