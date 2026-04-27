@@ -582,14 +582,16 @@ flowchart LR
 │  ┌────────────────────────────────┐  │
 │  │      1150 / 1800 kcal         │  │
 │  │      ████████████░░░░░░░░░    │  │
+│  │  ✅ Eaten: 870 kcal           │  │
+│  │              ⏳ Planned: 280 kcal│ │
 │  └────────────────────────────────┘  │
 │                                      │
-│  ☰ ✅ 咖啡              120 kcal    │
-│  ☰ ✅ 小咖喱            630 kcal    │
-│  ☰ ✅ 咖啡              120 kcal    │
-│  ☰ ⏳ + 小咖喱          630 kcal    │
-│  ☰ ⏳ + 冰淇淋          100 kcal    │
-│  ☰ ⏳ + 威士忌          150 kcal    │
+│  ☰ [✓] 咖啡              120 kcal ✕│
+│  ☰ [✓] 小咖喱            630 kcal ✕│
+│  ☰ [✓] 咖啡              120 kcal ✕│
+│  ☰ [ ] + 小咖喱          630 kcal ✕│
+│  ☰ [ ] + 冰淇淋          100 kcal ✕│
+│  ☰ [ ] + 威士忌          150 kcal ✕│
 │                                      │
 │  [+ Add from Library]  [+ Manual]    │
 │                                      │
@@ -602,8 +604,10 @@ flowchart LR
 └──────────────────────────────────────┘
 ```
 
+- **Default target**: On first visit to a date, a default target of 1800 kcal is auto-saved so the progress bar and suggestion render immediately.
 - **Progress bar**: Visual representation of current/target. Color changes: green (under 80%), yellow (80-100%), red (over 100%).
-- **Item list**: Each row has a drag handle (☰), eaten/planned toggle (checkbox), name, and calories. Eaten items show as checked (✅), planned items show with a `+` prefix and pending icon (⏳).
+- **Eaten / Planned sums**: Below the progress bar, two separate totals are displayed — eaten sum (checked items) and planned sum (unchecked items).
+- **Item list**: Each row has a drag handle (☰), eaten/planned toggle (checkbox), name, calories, and a delete button (✕). Eaten items show a filled green checkbox with checkmark; planned items show an empty yellow-outlined checkbox with a `+` prefix on the name.
 - **Drag-to-reorder**: Grab the ☰ handle to reorder items (eating sequence planning).
 - **Suggestion card**: Appears when current eaten total < target. Shows one recommended item with a quick "Add to list" button.
 
@@ -676,4 +680,4 @@ flowchart LR
 
 ---
 
-*End of System Design Document — FitHelper v0.1.0*
+*End of System Design Document — FitHelper v0.1.3*
