@@ -24,7 +24,11 @@ npm run dev
 ## Testing
 
 ```bash
+# Unit + integration tests
 npm test
+
+# E2E tests (builds the app, then launches Electron with Playwright)
+npm run test:e2e
 ```
 
 ## Build
@@ -44,4 +48,4 @@ Produces a `.dmg` installer in the `release/` directory.
 
 ## Version
 
-0.1.1
+0.1.2

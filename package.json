@@ -1,6 +1,6 @@
 {
   "name": "fithelper",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A lightweight, intuitive health utility for macOS",
   "main": "dist/main/index.js",
   "scripts": {
@@ -11,7 +11,9 @@
     "postinstall": "electron-rebuild -f -w better-sqlite3",
     "lint": "eslint src/ --ext .ts,.tsx",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:app": "tsc -p tsconfig.node.json && vite build",
+    "test:e2e": "npm run build:app && npx playwright test"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +31,7 @@
     "react-i18next": "^17.0.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/better-sqlite3": "^7.6.13",
