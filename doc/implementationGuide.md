@@ -353,7 +353,7 @@ Create these files:
 **`PaceConverter.tsx`** — main component:
 - State: `inputValue`, `fromUnit` ('mph' or 'min_km'), `result`, `history`.
 - On mount, call `window.electronAPI.converter.getHistory()` to load history.
-- On input change (debounced 100ms), call `window.electronAPI.converter.convert(value, fromUnit)` and display the result.
+- On input change (debounced 600ms) or Enter key press, call `window.electronAPI.converter.convert(value, fromUnit)` and display the result.
 - Swap button toggles `fromUnit` between 'mph' and 'min_km'.
 - Below the converter, render the history list (max 10, most recent first).
 - Follow the wireframe layout from `systemDesign.md` Section 3.3.1.

@@ -541,7 +541,7 @@ flowchart LR
 ```
 
 - Swap button between the two input fields to reverse direction.
-- Result computes on every keystroke (debounced 100ms).
+- Result computes after typing stops (debounced 600ms) or immediately on Enter key.
 - Recent list below, max 10 items, most recent first.
 
 #### 3.3.2 Calorie Library
@@ -650,7 +650,7 @@ flowchart LR
 
 | Pattern | Implementation |
 |---------|---------------|
-| Real-time calculation | Tool 1 converts on keystroke (100ms debounce); Tool 3 recalculates sum on toggle/add/delete |
+| Real-time calculation | Tool 1 converts after typing stops (600ms debounce) or on Enter; Tool 3 recalculates sum on toggle/add/delete |
 | Drag-and-drop | Tool 3 uses @dnd-kit for accessible, smooth reordering with visual placeholder |
 | Inline editing | Tool 2 items switch to edit mode in-place (no modal for simple edits) |
 | Confirmation | Destructive actions (delete item, clear history) show a brief confirmation tooltip, not a disruptive modal |

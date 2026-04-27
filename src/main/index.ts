@@ -4,6 +4,7 @@ import windowStateKeeper from 'electron-window-state';
 import { getDb } from './db/connection';
 import { runMigrations } from './db/migrations';
 import { seedData } from './db/seed';
+import { registerConverterHandlers } from './ipc/converter';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -42,8 +43,6 @@ function createWindow(): void {
 }
 
 function registerStubHandlers(): void {
-  ipcMain.handle('converter:convert', async () => ({ result: '', toUnit: 'min_km' }));
-  ipcMain.handle('converter:getHistory', async () => []);
   ipcMain.handle('calorie:getAll', async () => []);
   ipcMain.handle('calorie:create', async () => ({}));
   ipcMain.handle('calorie:update', async () => ({}));
@@ -68,6 +67,7 @@ app.whenReady().then(() => {
   runMigrations(db);
   seedData(db);
 
+  registerConverterHandlers(db);
   registerStubHandlers();
   createWindow();
 

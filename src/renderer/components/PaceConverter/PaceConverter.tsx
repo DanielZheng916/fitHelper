@@ -70,7 +70,14 @@ export default function PaceConverter() {
   const handleInputChange = (value: string) => {
     setInputValue(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => doConvert(value, fromUnit), 100);
+    debounceRef.current = setTimeout(() => doConvert(value, fromUnit), 600);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      doConvert(inputValue, fromUnit);
+    }
   };
 
   const handleSwap = () => {
@@ -101,6 +108,7 @@ export default function PaceConverter() {
             type="text"
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder={fromUnit === 'mph' ? '5.2' : '6:46'}
             style={{
               width: 160,

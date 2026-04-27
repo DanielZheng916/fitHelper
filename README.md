@@ -4,7 +4,7 @@ A lightweight, intuitive health utility for macOS — providing quick, easy-to-u
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - macOS
 
 ## Setup
@@ -44,4 +44,4 @@ Produces a `.dmg` installer in the `release/` directory.
 
 ## Version
 
-0.1.0
+0.1.1
