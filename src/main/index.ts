@@ -33,11 +33,11 @@ function createWindow(): void {
 
   mainWindowState.manage(mainWindow);
 
-  const isDev = !app.isPackaged;
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
-  } else {
+  const serveBuilt = app.isPackaged || process.env.ELECTRON_SERVE_BUILT === '1';
+  if (serveBuilt) {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  } else {
+    mainWindow.loadURL('http://localhost:5173');
   }
 
   mainWindow.on('closed', () => {
