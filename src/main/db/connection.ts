@@ -8,7 +8,7 @@ let db: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (db) return db;
 
-  const dbDir = path.join(os.homedir(), '.fithelper');
+  const dbDir = process.env.FITHELPER_DB_DIR || path.join(os.homedir(), '.fithelper');
   fs.mkdirSync(dbDir, { recursive: true });
 
   const dbPath = path.join(dbDir, 'fithelper.db');

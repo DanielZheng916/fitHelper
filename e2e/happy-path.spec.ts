@@ -1,10 +1,20 @@
 import { test, expect, _electron as electron, ElectronApplication, Page } from '@playwright/test';
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
 
 let app: ElectronApplication;
 let page: Page;
+let tmpDir: string;
 
 test.beforeAll(async () => {
-  const env = { ...process.env, NODE_ENV: 'production', ELECTRON_SERVE_BUILT: '1' };
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fithelper-e2e-'));
+  const env = {
+    ...process.env,
+    NODE_ENV: 'production',
+    ELECTRON_SERVE_BUILT: '1',
+    FITHELPER_DB_DIR: tmpDir,
+  };
   delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({
     args: ['.'],
@@ -17,6 +27,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   await app.close();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
 async function clickSidebarItem(index: number) {
