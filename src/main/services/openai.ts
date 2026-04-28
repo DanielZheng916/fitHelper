@@ -4,39 +4,38 @@ import crypto from 'crypto';
 import OpenAI from 'openai';
 import Database from 'better-sqlite3';
 
-const KEY_FILENAME = 'open-ai-api-key.txt';
-
 let apiKey: string | null | undefined;
 
-function getElectronApp() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  return require('electron').app as import('electron').App;
+export function clearApiKeyCache(): void {
+  apiKey = undefined;
 }
 
-function loadApiKey(): string | null {
+function tryReadEncryptedKey(): string | null {
+  try {
+    // Lazy require to avoid circular dependency at import time
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readEncryptedKey } = require('../ipc/settings') as typeof import('../ipc/settings');
+    return readEncryptedKey();
+  } catch {
+    return null;
+  }
+}
+
+function tryReadDevKey(): string | null {
+  const devPath = path.join(process.cwd(), 'keys', 'open-ai-api-key.txt');
+  try {
+    const key = fs.readFileSync(devPath, 'utf-8').trim();
+    return key || null;
+  } catch {
+    return null;
+  }
+}
+
+export function loadApiKey(): string | null {
   if (apiKey !== undefined) return apiKey;
 
-  const electronApp = getElectronApp();
-  const candidates = [
-    path.join(electronApp.getPath('userData'), KEY_FILENAME),
-    path.join(electronApp.getAppPath(), 'keys', KEY_FILENAME),
-    path.join(process.cwd(), 'keys', KEY_FILENAME),
-  ];
-
-  for (const p of candidates) {
-    try {
-      const key = fs.readFileSync(p, 'utf-8').trim();
-      if (key) {
-        apiKey = key;
-        return apiKey;
-      }
-    } catch {
-      // try next candidate
-    }
-  }
-
-  apiKey = null;
-  return null;
+  apiKey = tryReadEncryptedKey() ?? tryReadDevKey() ?? null;
+  return apiKey;
 }
 
 const SYSTEM_PROMPT = `You are a concise running and fitness coach. The user will provide their training log and training plan. Analyze their current progress, compare it to the plan, and provide a brief suggestion (3-5 sentences max). Focus on: current status assessment, what to do next, injury prevention, and how to maximize progress. Reply in the same language as the user's data.`;
@@ -52,6 +51,11 @@ export function buildMessages(plan: string, records: string) {
   };
 }
 
+function getElectronApp() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('electron').app as import('electron').App;
+}
+
 export async function getCoachSuggestion(
   db: Database.Database,
   plan: string,
@@ -60,8 +64,8 @@ export async function getCoachSuggestion(
 ): Promise<string> {
   const key = loadApiKey();
   if (!key) {
-    const userDataPath = path.join(getElectronApp().getPath('userData'), KEY_FILENAME);
-    return `API key not configured. Place your OpenAI key in:\n${userDataPath}`;
+    const userDataPath = path.join(getElectronApp().getPath('userData'), 'api-key.enc');
+    return `API key not configured. Open Settings to add your OpenAI key.\n(Key path: ${userDataPath})`;
   }
 
   const hash = computeHash(plan, records);

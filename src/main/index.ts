@@ -8,6 +8,7 @@ import { registerConverterHandlers } from './ipc/converter';
 import { registerCalorieHandlers } from './ipc/calorieLib';
 import { registerDailyHandlers } from './ipc/dailyTracker';
 import { registerTrainingHandlers } from './ipc/training';
+import { registerSettingsHandlers } from './ipc/settings';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -54,6 +55,7 @@ app.whenReady().then(() => {
   registerCalorieHandlers(db);
   registerDailyHandlers(db);
   registerTrainingHandlers(db);
+  registerSettingsHandlers();
   createWindow();
 
   app.on('activate', () => {

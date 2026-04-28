@@ -32,4 +32,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getCoachSuggestion: (force: boolean) =>
       ipcRenderer.invoke('training:getCoachSuggestion', { force }),
   },
+  settings: {
+    getApiKeyStatus: () => ipcRenderer.invoke('settings:getApiKeyStatus'),
+    setApiKey: (key: string) => ipcRenderer.invoke('settings:setApiKey', { key }),
+    clearApiKey: () => ipcRenderer.invoke('settings:clearApiKey'),
+  },
 });

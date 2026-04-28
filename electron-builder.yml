@@ -12,4 +12,3 @@ directories:
   buildResources: build
 files:
   - dist/**/*
-  - keys/**/*

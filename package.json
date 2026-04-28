@@ -1,6 +1,6 @@
 {
   "name": "fithelper",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "A lightweight, intuitive health utility for macOS",
   "main": "dist/main/index.js",
   "scripts": {

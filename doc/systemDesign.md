@@ -1,6 +1,6 @@
 # FitHelper System Design Document
 
-> Version: 0.1.0
+> Version: 0.2.0
 >
 > A lightweight, intuitive health utility — providing quick, easy-to-understand
 > functions that help people save time and live healthier.
@@ -19,7 +19,7 @@
 
 ### 1.1 Overview
 
-FitHelper is a macOS desktop toolset containing four integrated tools:
+FitHelper is a macOS desktop toolset containing four integrated tools plus a Settings screen:
 
 | Tool | Name | Purpose |
 |------|------|---------|
@@ -27,6 +27,7 @@ FitHelper is a macOS desktop toolset containing four integrated tools:
 | Tool 2 | 热量参考库 (Calorie Library) | Editable categorized food calorie reference |
 | Tool 3 | 每日热量追踪 (Daily Calorie Tracker) | Daily intake tracking with smart food suggestions |
 | Tool 4 | 训练日志 + AI教练 (Training Log + AI Coach) | Training records, plans, and LLM-powered coaching |
+| Settings | 设置 (Settings) | OpenAI API key configuration |
 
 ### 1.2 Cross-Tool Data Flow
 
@@ -169,7 +170,7 @@ flowchart LR
   - Avoid injury through pacing guidance.
   - Maximize ability gain based on progress trends.
 - **Model**: `gpt-5.2` via OpenAI API.
-- **API key**: Read from local file at `keys/open-ai-api-key.txt`.
+- **API key**: Managed via the in-app Settings screen. The key is encrypted using Electron's `safeStorage` API (backed by macOS Keychain) and persisted to `userData/api-key.enc`. Users set the key once; it survives app restarts and updates. A dev-mode fallback reads from `keys/open-ai-api-key.txt` in the working directory.
 
 ---
 
@@ -183,7 +184,7 @@ flowchart TB
         subgraph MainProcess [Main Process - Node.js]
             IPC[IPC_Handlers]
             DB[SQLite_Database]
-            FileIO[FileSystem_APIKey]
+            SafeStore[safeStorage_APIKey]
             OpenAIClient[OpenAI_SDK_Client]
         end
         subgraph RendererProcess [Renderer Process - Chromium]
@@ -193,12 +194,13 @@ flowchart TB
             T2View[CalorieLibrary_View]
             T3View[DailyTracker_View]
             T4View[TrainingLog_View]
+            SettingsView[Settings_View]
         end
     end
     RendererProcess <-->|IPC Bridge| MainProcess
     OpenAIClient <-->|HTTPS| OpenAIAPI[OpenAI_API]
     DB <-->|Read/Write| SQLiteFile[(fithelper.db)]
-    FileIO -->|Read| KeyFile[keys/open-ai-api-key.txt]
+    SafeStore -->|"Read/Write (encrypted)"| KeyFile[(api-key.enc)]
 ```
 
 ### 2.2 Tech Stack
@@ -223,7 +225,7 @@ fitHelper/
 ├── doc/
 │   ├── projectRequirement.md
 │   └── systemDesign.md
-├── keys/
+├── keys/                        # Dev-only API key fallback (gitignored)
 │   └── open-ai-api-key.txt
 ├── src/
 │   ├── main/                    # Electron main process
@@ -232,7 +234,8 @@ fitHelper/
 │   │   │   ├── converter.ts     # Tool 1 conversion logic
 │   │   │   ├── calorieLib.ts    # Tool 2 CRUD
 │   │   │   ├── dailyTracker.ts  # Tool 3 tracker logic
-│   │   │   └── training.ts      # Tool 4 records + AI
+│   │   │   ├── training.ts      # Tool 4 records + AI
+│   │   │   └── settings.ts      # Settings: API key management
 │   │   ├── db/
 │   │   │   ├── connection.ts    # SQLite connection setup
 │   │   │   ├── migrations.ts    # Schema migrations
@@ -248,7 +251,9 @@ fitHelper/
 │   │   │   ├── PaceConverter/
 │   │   │   ├── CalorieLibrary/
 │   │   │   ├── DailyTracker/
-│   │   │   └── TrainingLog/
+│   │   │   ├── TrainingLog/
+│   │   │   └── Settings/
+│   │   │       └── Settings.tsx  # API key configuration UI
 │   │   ├── hooks/               # Custom React hooks
 │   │   ├── styles/              # Global styles + theme
 │   │   └── i18n/                # Localization files
@@ -262,6 +267,7 @@ fitHelper/
 ├── vite.config.ts
 ├── electron-builder.yml
 ├── package.json
+├── LICENSE                      # MIT License
 └── README.md
 ```
 
@@ -353,7 +359,7 @@ Caches recent AI responses to avoid redundant API calls when content hasn't chan
 #### Configuration
 
 - **Model**: `gpt-5.2`
-- **API key source**: Read from `keys/open-ai-api-key.txt` at app startup. Stored in memory only — never written to the database.
+- **API key source**: Encrypted via Electron `safeStorage` (macOS Keychain) and stored at `userData/api-key.enc`. Users configure the key through the in-app Settings screen. A dev-mode fallback reads from `keys/open-ai-api-key.txt` in the working directory. The decrypted key is held in main-process memory only — never written to the database.
 - **Max tokens (response)**: ~300 tokens (keeps suggestions brief).
 - **Temperature**: 0.7 (balanced between consistency and variety).
 
@@ -409,6 +415,9 @@ All renderer-to-main communication goes through Electron IPC with typed channels
 | `training:getPlan` | renderer -> main | — | `string` |
 | `training:savePlan` | renderer -> main | `{ content: string }` | `void` |
 | `training:getCoachSuggestion` | renderer -> main | `{ force: boolean }` | `string` |
+| `settings:getApiKeyStatus` | renderer -> main | — | `{ configured: boolean }` |
+| `settings:setApiKey` | renderer -> main | `{ key: string }` | `void` |
+| `settings:clearApiKey` | renderer -> main | — | `void` |
 
 ### 2.7 Conversion Formulas (Tool 1)
 
@@ -505,6 +514,7 @@ flowchart LR
             Nav2["2. Calorie Library"]
             Nav3["3. Daily Tracker"]
             Nav4["4. Training Log"]
+            Nav5["5. Settings"]
         end
         subgraph Content ["Content Area (flex)"]
             ActiveView[Currently_Selected_Tool_View]
@@ -513,7 +523,7 @@ flowchart LR
     SB --> Content
 ```
 
-- **Sidebar** (fixed width 220px, left side): Displays the app name/logo at top, followed by 4 navigation items. The active tool is highlighted with the accent color and a left border indicator.
+- **Sidebar** (fixed width 220px, left side): Displays the app name/logo at top, followed by 4 tool navigation items and a Settings item. The active item is highlighted with the accent color and a left border indicator.
 - **Content area** (flexible, right side): Renders the selected tool's view. Scrollable independently of the sidebar.
 - **Window size**: Default 1200 x 800px, minimum 900 x 600px. Resizable.
 
@@ -658,7 +668,7 @@ flowchart LR
 | Drag-and-drop | Tool 3 uses @dnd-kit for accessible, smooth reordering with visual placeholder |
 | Inline editing | Tool 2 items switch to edit mode in-place (no modal for simple edits) |
 | Confirmation | Destructive actions (delete item, clear history) show a brief confirmation tooltip, not a disruptive modal |
-| Keyboard shortcuts | Cmd+1/2/3/4 to switch tools; Cmd+S to save in Tool 4; Esc to cancel edits |
+| Keyboard shortcuts | Cmd+1/2/3/4/5 to switch tools/settings; Cmd+S to save in Tool 4; Esc to cancel edits |
 | Loading states | Skeleton placeholders for initial data load; inline spinner for AI responses |
 | Error handling | Inline error messages near the relevant field; toast notifications for system-level errors (DB failure, API error) |
 
@@ -680,4 +690,4 @@ flowchart LR
 
 ---
 
-*End of System Design Document — FitHelper v0.1.3*
+*End of System Design Document — FitHelper v0.2.0*

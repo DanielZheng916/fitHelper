@@ -4,6 +4,7 @@ import PaceConverter from './components/PaceConverter/PaceConverter';
 import CalorieLibrary from './components/CalorieLibrary/CalorieLibrary';
 import DailyTracker from './components/DailyTracker/DailyTracker';
 import TrainingLog from './components/TrainingLog/TrainingLog';
+import Settings from './components/Settings/Settings';
 import ToastContainer from './components/Toast';
 
 export default function App() {
@@ -13,7 +14,7 @@ export default function App() {
     (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
         const num = parseInt(e.key, 10);
-        if (num >= 1 && num <= 4) {
+        if (num >= 1 && num <= 5) {
           e.preventDefault();
           setActiveTool(num);
         }
@@ -40,6 +41,8 @@ export default function App() {
         return <DailyTracker />;
       case 4:
         return <TrainingLog />;
+      case 5:
+        return <Settings />;
       default:
         return null;
     }

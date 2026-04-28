@@ -7,6 +7,7 @@
     "tool2": "热量参考库",
     "tool3": "每日热量追踪",
     "tool4": "训练日志 + AI教练",
+    "tool5": "设置",
     "langToggle": "EN"
   },
   "converter": {
@@ -54,6 +55,19 @@
     "refresh": "刷新",
     "loading": "加载中...",
     "noSuggestion": "保存训练数据以获取AI教练建议。"
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "Settings",
+    "apiKeyLabel": "OpenAI API Key",
+    "apiKeyPlaceholder": "sk-...",
+    "save": "保存",
+    "clear": "清除密钥",
+    "statusConfigured": "API 密钥已配置。",
+    "statusNotConfigured": "API 密钥未配置。AI 教练功能需要 OpenAI API 密钥。",
+    "saveSuccess": "API 密钥保存成功。",
+    "clearSuccess": "API 密钥已清除。",
+    "securityNote": "您的密钥通过 macOS 钥匙串加密并存储在本地，仅用于发送至 OpenAI API。"
   },
   "toast": {
     "saved": "已保存",

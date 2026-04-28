@@ -10,6 +10,7 @@ const TOOL_KEYS = [
   { id: 2, key: 'sidebar.tool2' },
   { id: 3, key: 'sidebar.tool3' },
   { id: 4, key: 'sidebar.tool4' },
+  { id: 5, key: 'sidebar.tool5' },
 ];
 
 export default function Sidebar({ activeTool, onToolChange }: SidebarProps) {

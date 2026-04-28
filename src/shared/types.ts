@@ -66,6 +66,11 @@ export interface ElectronAPI {
     savePlan: (content: string) => Promise<void>;
     getCoachSuggestion: (force: boolean) => Promise<string>;
   };
+  settings: {
+    getApiKeyStatus: () => Promise<{ configured: boolean }>;
+    setApiKey: (key: string) => Promise<void>;
+    clearApiKey: () => Promise<void>;
+  };
 }
 
 declare global {
