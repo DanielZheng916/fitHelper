@@ -17,6 +17,11 @@
 - Configure a linter for every project.
 - Resolve all lint issues before committing.
 
+## Update & Reinstall Safety
+- Store all persistent state in `~/.fithelper/`, never inside the app directory.
+- Use versioned, idempotent migrations for any schema or config format change.
+- Never discard existing user data — migrate it to the new format.
+
 # Project Concept
 
 A lightweight, intuitive health utility — providing quick, easy-to-understand functions that help people save time and live healthier.
