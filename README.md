@@ -79,6 +79,17 @@ Produces a `.dmg` installer in the `release/` directory (arm64 + x64).
 
 [MIT](LICENSE)
 
+## Onboarding
+
+On first launch, a **Welcome Wizard** guides new users through the app's features and helps them configure the optional AI Coach API key. The wizard:
+
+1. **Welcome** — app name and tagline.
+2. **Feature Overview** — 2×2 cards for all four tools.
+3. **API Key Setup** — step-by-step instructions with live "Test & Save" validation.
+4. **Done** — offers a quick guided tour (Part 3) or jumps straight into the app.
+
+Onboarding state is stored in `localStorage` (`fithelper-onboarding-done`). Reset it to see the wizard again.
+
 ## Version
 
-0.2.0
+0.3.0

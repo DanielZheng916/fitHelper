@@ -23,6 +23,22 @@ test.beforeAll(async () => {
   page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1000);
+
+  // Dismiss the welcome wizard if it appears (first launch).
+  const wizardOverlay = page.locator('[style*="z-index: 10000"]');
+  if (await wizardOverlay.isVisible({ timeout: 3000 }).catch(() => false)) {
+    // Step 1 → click Get Started
+    await page.getByRole('button', { name: /get started/i }).click();
+    // Step 2 → click the last button (Next →)
+    const btns = page.locator('[style*="z-index: 10000"] button');
+    await btns.last().click();
+    // Step 3 → click Skip for now
+    await page.getByText(/skip for now/i).click();
+    // Step 4 → click Start Using FitHelper
+    await page.getByRole('button', { name: /start using fithelper/i }).click();
+    // Wait for wizard to disappear
+    await wizardOverlay.waitFor({ state: 'detached', timeout: 3000 });
+  }
 });
 
 test.afterAll(async () => {
@@ -35,12 +51,23 @@ async function clickSidebarItem(index: number) {
   await buttons.nth(index).click();
 }
 
-test.describe.serial('Sidebar navigation', () => {
-  test('renders all 4 sidebar items and navigates', async () => {
-    const sidebarButtons = page.locator('aside nav button');
-    await expect(sidebarButtons).toHaveCount(4);
+test.describe.serial('Welcome Wizard', () => {
+  test('wizard sets onboarding-done flag and does not reappear', async () => {
+    // By this point beforeAll already dismissed the wizard; confirm it's gone.
+    await expect(page.locator('[style*="z-index: 10000"]')).toHaveCount(0);
 
-    for (let i = 0; i < 4; i++) {
+    // Verify the localStorage flag was set via evaluating in the renderer.
+    const flag = await page.evaluate(() => localStorage.getItem('fithelper-onboarding-done'));
+    expect(flag).toBe('true');
+  });
+});
+
+test.describe.serial('Sidebar navigation', () => {
+  test('renders all 5 sidebar items and navigates', async () => {
+    const sidebarButtons = page.locator('aside nav button');
+    await expect(sidebarButtons).toHaveCount(5);
+
+    for (let i = 0; i < 5; i++) {
       await sidebarButtons.nth(i).click();
       const heading = page.locator('main h1');
       await expect(heading).toBeVisible();

@@ -67,7 +67,62 @@
     "statusNotConfigured": "API 密钥未配置。AI 教练功能需要 OpenAI API 密钥。",
     "saveSuccess": "API 密钥保存成功。",
     "clearSuccess": "API 密钥已清除。",
-    "securityNote": "您的密钥通过 macOS 钥匙串加密并存储在本地，仅用于发送至 OpenAI API。"
+    "securityNote": "您的密钥通过 macOS 钥匙串加密并存储在本地，仅用于发送至 OpenAI API。",
+    "howToGetKey": "如何获取 API 密钥",
+    "testConnection": "测试连接",
+    "testSuccess": "连接成功 — 密钥有效。",
+    "testFailed": "连接失败：{{error}}",
+    "manageKeys": "在 OpenAI 管理您的密钥"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "欢迎使用 FitHelper",
+      "subtitle": "轻量级健康工具 — 帮助您节省时间、更健康生活。",
+      "getStarted": "开始使用"
+    },
+    "features": {
+      "title": "功能概览",
+      "converter": "配速与英里时速即时互转。",
+      "calorie": "您的个人食物热量参考库。",
+      "daily": "智能追踪每日摄入热量。",
+      "training": "记录训练并获取 AI 教练建议。"
+    },
+    "apiKey": {
+      "title": "配置 AI 教练（可选）",
+      "description": "AI 教练会分析您的训练并给出个性化建议，需要 OpenAI API 密钥。",
+      "step1": "访问 platform.openai.com/api-keys",
+      "step2": "注册或登录您的 OpenAI 账号",
+      "step3": "点击「创建新密钥」，填写名称并复制",
+      "step4": "将密钥粘贴到下方输入框",
+      "testAndSave": "测试并保存",
+      "testing": "测试中...",
+      "valid": "密钥有效！",
+      "invalid": "密钥无效：{{error}}",
+      "skip": "跳过"
+    },
+    "done": {
+      "title": "配置完成！",
+      "keyConfigured": "AI 教练已就绪。",
+      "keySkipped": "您可以稍后在设置中配置 AI 教练。",
+      "takeTour": "快速导览",
+      "startApp": "开始使用 FitHelper"
+    },
+    "tour": {
+      "relaunch": "快速导览",
+      "step1": "配速转换器 — 快速在配速与英里时速之间转换。",
+      "step2": "热量参考库 — 浏览和管理您的食物热量数据库。",
+      "step3": "每日追踪 — 设置热量目标并记录每日饮食。",
+      "step4": "训练日志 + AI 教练 — 记录训练并获取 AI 建议。",
+      "step5": "设置 — 随时配置您的 OpenAI API 密钥。",
+      "step6": "一键切换中英文界面。"
+    },
+    "hint": {
+      "tool1": "输入速度或配速值 — 自动完成转换。点击交换按钮可切换方向。",
+      "tool2": "这是您的个人食物数据库，内置预设条目，可自由添加、编辑或删除。",
+      "tool3": "设置每日热量目标，添加食物，并切换已吃/计划状态。支持拖拽排序。",
+      "tool4": "以任意格式记录训练。保存后 AI 教练将分析您的进展。",
+      "noApiKey": "请在设置中配置 API 密钥以启用 AI 教练。"
+    }
   },
   "toast": {
     "saved": "已保存",

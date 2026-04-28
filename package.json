@@ -1,6 +1,6 @@
 {
   "name": "fithelper",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A lightweight, intuitive health utility for macOS",
   "main": "dist/main/index.js",
   "scripts": {
@@ -27,6 +27,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "better-sqlite3": "^12.9.0",
+    "driver.js": "^1.4.0",
     "electron-window-state": "^5.0.3",
     "i18next": "^26.0.8",
     "openai": "^6.34.0",

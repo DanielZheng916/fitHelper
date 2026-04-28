@@ -67,7 +67,62 @@
     "statusNotConfigured": "API key is not configured. The AI Coach feature requires an OpenAI API key.",
     "saveSuccess": "API key saved successfully.",
     "clearSuccess": "API key cleared.",
-    "securityNote": "Your key is encrypted via macOS Keychain and stored locally. It is never sent anywhere except to the OpenAI API."
+    "securityNote": "Your key is encrypted via macOS Keychain and stored locally. It is never sent anywhere except to the OpenAI API.",
+    "howToGetKey": "How to get an API key",
+    "testConnection": "Test Connection",
+    "testSuccess": "Connection successful — your key works.",
+    "testFailed": "Connection failed: {{error}}",
+    "manageKeys": "Manage your keys on OpenAI"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to FitHelper",
+      "subtitle": "A lightweight health utility — quick tools to help you live healthier.",
+      "getStarted": "Get Started"
+    },
+    "features": {
+      "title": "What's Inside",
+      "converter": "Convert between mph and min/km instantly.",
+      "calorie": "Your personal food calorie reference.",
+      "daily": "Track daily intake with smart suggestions.",
+      "training": "Log workouts and get AI coaching."
+    },
+    "apiKey": {
+      "title": "Set up AI Coach (optional)",
+      "description": "The AI Coach analyzes your training and gives personalized advice. It requires an OpenAI API key.",
+      "step1": "Visit platform.openai.com/api-keys",
+      "step2": "Sign up or log in to your OpenAI account",
+      "step3": "Click \"Create new secret key\", give it a name, copy it",
+      "step4": "Paste it below",
+      "testAndSave": "Test & Save",
+      "testing": "Testing...",
+      "valid": "Key is valid!",
+      "invalid": "Key is invalid: {{error}}",
+      "skip": "Skip for now"
+    },
+    "done": {
+      "title": "You're all set!",
+      "keyConfigured": "AI Coach is ready to go.",
+      "keySkipped": "You can set up the AI Coach later in Settings.",
+      "takeTour": "Take a Quick Tour",
+      "startApp": "Start Using FitHelper"
+    },
+    "tour": {
+      "relaunch": "Take a tour",
+      "step1": "Pace Converter — quickly convert running pace between mph and min/km.",
+      "step2": "Calorie Library — browse and manage your food calorie database.",
+      "step3": "Daily Tracker — set a calorie target and log your meals.",
+      "step4": "Training Log + AI Coach — record workouts and get AI-powered advice.",
+      "step5": "Settings — configure your OpenAI API key anytime.",
+      "step6": "Switch between English and Chinese with one click."
+    },
+    "hint": {
+      "tool1": "Type a speed or pace value — conversion happens automatically. Use the swap button to change direction.",
+      "tool2": "This is your personal food database. The app comes with preset items — feel free to add, edit, or delete any of them.",
+      "tool3": "Set today's calorie target, add food items, and toggle them between planned and eaten. Drag to reorder.",
+      "tool4": "Write your training notes in any format. When you save, the AI Coach will analyze your progress.",
+      "noApiKey": "Set up your API key in Settings to enable AI Coach."
+    }
   },
   "toast": {
     "saved": "Saved",

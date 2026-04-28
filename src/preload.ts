@@ -36,5 +36,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getApiKeyStatus: () => ipcRenderer.invoke('settings:getApiKeyStatus'),
     setApiKey: (key: string) => ipcRenderer.invoke('settings:setApiKey', { key }),
     clearApiKey: () => ipcRenderer.invoke('settings:clearApiKey'),
+    testApiKey: (key: string) => ipcRenderer.invoke('settings:testApiKey', { key }),
+    testSavedKey: () => ipcRenderer.invoke('settings:testSavedKey'),
+    openKeyManagement: () => ipcRenderer.invoke('settings:openKeyManagement'),
   },
 });

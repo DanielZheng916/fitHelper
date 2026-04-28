@@ -70,6 +70,9 @@ export interface ElectronAPI {
     getApiKeyStatus: () => Promise<{ configured: boolean }>;
     setApiKey: (key: string) => Promise<void>;
     clearApiKey: () => Promise<void>;
+    testApiKey: (key: string) => Promise<{ valid: boolean; error?: string }>;
+    testSavedKey: () => Promise<{ valid: boolean; error?: string }>;
+    openKeyManagement: () => Promise<void>;
   };
 }
 

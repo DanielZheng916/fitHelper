@@ -6,9 +6,14 @@ import DailyTracker from './components/DailyTracker/DailyTracker';
 import TrainingLog from './components/TrainingLog/TrainingLog';
 import Settings from './components/Settings/Settings';
 import ToastContainer from './components/Toast';
+import WelcomeWizard from './components/Onboarding/WelcomeWizard';
+import { launchGuidedTour } from './components/Onboarding/guidedTour';
 
 export default function App() {
   const [activeTool, setActiveTool] = useState(1);
+  const [showWizard, setShowWizard] = useState(
+    () => !localStorage.getItem('fithelper-onboarding-done')
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -48,11 +53,21 @@ export default function App() {
     }
   };
 
+  const handleWizardComplete = useCallback(
+    (startTour: boolean) => {
+      localStorage.setItem('fithelper-onboarding-done', 'true');
+      setShowWizard(false);
+      if (startTour) launchGuidedTour(setActiveTool);
+    },
+    []
+  );
+
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
       <main style={{ flex: 1, overflow: 'auto', padding: 32 }}>{renderContent()}</main>
       <ToastContainer />
+      {showWizard && <WelcomeWizard onComplete={handleWizardComplete} />}
     </div>
   );
 }
