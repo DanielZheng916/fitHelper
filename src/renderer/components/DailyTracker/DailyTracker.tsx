@@ -176,10 +176,14 @@ export default function DailyTracker() {
   }, [date, load]);
 
   const eatenSum = items.filter((i) => i.isEaten).reduce((s, i) => s + i.calories, 0);
-  const plannedSum = items.filter((i) => !i.isEaten).reduce((s, i) => s + i.calories, 0);
+  const uneatenSum = items.filter((i) => !i.isEaten).reduce((s, i) => s + i.calories, 0);
+  const totalPlanned = eatenSum + uneatenSum;
   const targetCal = target?.targetCalories ?? 0;
-  const ratio = targetCal > 0 ? eatenSum / targetCal : 0;
-  const barColor = ratio > 1 ? 'var(--color-danger)' : ratio >= 0.8 ? 'var(--color-warning)' : 'var(--color-success)';
+  const freeRemaining = targetCal - totalPlanned;
+  const eatenRatio = targetCal > 0 ? eatenSum / targetCal : 0;
+  const uneatenRatio = targetCal > 0 ? uneatenSum / targetCal : 0;
+  const totalRatio = targetCal > 0 ? totalPlanned / targetCal : 0;
+  const barColor = totalRatio > 1 ? 'var(--color-danger)' : eatenRatio >= 0.8 ? 'var(--color-warning)' : 'var(--color-success)';
 
   const handleSetTarget = async () => {
     const val = parseInt(targetInput, 10);
@@ -269,18 +273,37 @@ export default function DailyTracker() {
       {targetCal > 0 && (
         <div style={{ marginBottom: 24, padding: 16, background: 'var(--color-surface)', borderRadius: 8 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-lg)', marginBottom: 8, textAlign: 'center' }}>
-            <span style={{ color: barColor, fontWeight: 700 }}>{eatenSum}</span>
+            <span style={{ color: barColor, fontWeight: 700 }}>{totalPlanned}</span>
             <span style={{ color: 'var(--color-text-secondary)' }}> / {targetCal} {t('daily.kcal')}</span>
           </div>
-          <div style={{ background: 'var(--color-border)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(ratio * 100, 100)}%`, height: '100%', background: barColor, borderRadius: 4, transition: 'width 0.3s ease' }} />
+          <div style={{ background: 'var(--color-border)', borderRadius: 4, height: 8, overflow: 'hidden', display: 'flex' }}>
+            <div style={{
+              width: `${Math.min(eatenRatio * 100, 100)}%`,
+              height: '100%',
+              background: barColor,
+              transition: 'width 0.3s ease',
+              flexShrink: 0,
+            }} />
+            {uneatenSum > 0 && (
+              <div style={{
+                width: `${Math.min(uneatenRatio * 100, 100 - Math.min(eatenRatio * 100, 100))}%`,
+                height: '100%',
+                background: 'var(--color-warning)',
+                opacity: 0.5,
+                transition: 'width 0.3s ease',
+                flexShrink: 0,
+              }} />
+            )}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-mono)' }}>
             <span style={{ color: 'var(--color-success)' }}>
               ✅ {t('daily.eaten')}: {eatenSum} {t('daily.kcal')}
             </span>
             <span style={{ color: 'var(--color-warning)' }}>
-              ⏳ {t('daily.planned')}: {plannedSum} {t('daily.kcal')}
+              📋 {t('daily.planned')}: {totalPlanned} {t('daily.kcal')}
+            </span>
+            <span style={{ color: freeRemaining > 0 ? 'var(--color-accent)' : 'var(--color-danger)' }}>
+              {freeRemaining > 0 ? '💡' : '🚫'} {t('daily.free')}: {freeRemaining} {t('daily.kcal')}
             </span>
           </div>
         </div>
@@ -336,10 +359,10 @@ export default function DailyTracker() {
         </div>
       )}
 
-      {suggestion && targetCal > 0 && eatenSum < targetCal && (
+      {suggestion && targetCal > 0 && freeRemaining > 0 && (
         <div style={{ padding: 16, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)', marginTop: 16 }}>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 8 }}>
-            {t('daily.remaining', { count: targetCal - eatenSum })}
+            {t('daily.remaining', { count: freeRemaining })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span>🍽 {suggestion.name}</span>

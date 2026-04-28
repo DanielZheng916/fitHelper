@@ -42,7 +42,8 @@
     "remaining": "还差 {{count}} kcal，建议:",
     "addToList": "+ 添加",
     "eaten": "已吃",
-    "planned": "计划"
+    "planned": "计划",
+    "free": "剩余"
   },
   "training": {
     "title": "训练日志 + AI教练",

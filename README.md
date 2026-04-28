@@ -43,9 +43,9 @@ Produces a `.dmg` installer in the `release/` directory.
 
 1. **Pace Converter** — Bidirectional conversion between mph and min/km for runners.
 2. **Calorie Library** — Editable categorized food calorie reference with preset data.
-3. **Daily Calorie Tracker** — Daily intake tracking with drag-reorder, eaten/planned toggle, and smart food suggestions.
+3. **Daily Calorie Tracker** — Daily intake tracking with drag-reorder, eaten/planned toggle, dual-segment progress bar (eaten vs. planned), and smart food suggestions based on true remaining budget.
 4. **Training Log + AI Coach** — Freeform training records and plan with LLM-powered coaching analysis via OpenAI.
 
 ## Version
 
-0.1.3
+0.1.4

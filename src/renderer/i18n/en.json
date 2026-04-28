@@ -42,7 +42,8 @@
     "remaining": "{{count}} kcal remaining, suggestion:",
     "addToList": "+ Add",
     "eaten": "Eaten",
-    "planned": "Planned"
+    "planned": "Planned",
+    "free": "Remaining"
   },
   "training": {
     "title": "Training Log + AI Coach",

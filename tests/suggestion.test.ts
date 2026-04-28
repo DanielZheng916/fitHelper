@@ -27,13 +27,39 @@ describe('Food suggestion algorithm', () => {
     expect(result).toBeNull();
   });
 
-  it('should return null when remaining budget is 0', () => {
+  it('should return null when remaining budget is 0 (eaten items)', () => {
     db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-04-26', 100);
     db.prepare('INSERT INTO daily_items (date, name, calories, is_eaten, sort_order) VALUES (?, ?, ?, ?, ?)').run(
       '2026-04-26', '食物', 200, 1, 1
     );
     const result = suggestItem(db, '2026-04-26');
     expect(result).toBeNull();
+  });
+
+  it('should return null when remaining budget is 0 (uneaten planned items)', () => {
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-04-26', 200);
+    db.prepare('INSERT INTO daily_items (date, name, calories, is_eaten, sort_order) VALUES (?, ?, ?, ?, ?)').run(
+      '2026-04-26', '食物A', 100, 1, 1
+    );
+    db.prepare('INSERT INTO daily_items (date, name, calories, is_eaten, sort_order) VALUES (?, ?, ?, ?, ?)').run(
+      '2026-04-26', '食物B', 150, 0, 2
+    );
+    const result = suggestItem(db, '2026-04-26');
+    expect(result).toBeNull();
+  });
+
+  it('should subtract both eaten and uneaten items from budget', () => {
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-04-26', 1800);
+    db.prepare('INSERT INTO daily_items (date, name, calories, is_eaten, sort_order) VALUES (?, ?, ?, ?, ?)').run(
+      '2026-04-26', '食物A', 800, 1, 1
+    );
+    db.prepare('INSERT INTO daily_items (date, name, calories, is_eaten, sort_order) VALUES (?, ?, ?, ?, ?)').run(
+      '2026-04-26', '食物B', 900, 0, 2
+    );
+    const result = suggestItem(db, '2026-04-26');
+    if (result) {
+      expect(parseMaxCalories(result.calories)).toBeLessThanOrEqual(100);
+    }
   });
 
   it('should return null when all library items exceed budget', () => {

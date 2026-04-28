@@ -56,9 +56,9 @@ export function suggestItem(
     .prepare('SELECT * FROM daily_items WHERE date = ?')
     .all(date) as DailyItemRow[];
 
+  const allItemsSum = dailyItems.reduce((sum, i) => sum + i.calories, 0);
+  const remaining = target.target_calories - allItemsSum;
   const eatenItems = dailyItems.filter((i) => i.is_eaten === 1);
-  const eatenSum = eatenItems.reduce((sum, i) => sum + i.calories, 0);
-  const remaining = target.target_calories - eatenSum;
 
   if (remaining <= 0) return null;
 
