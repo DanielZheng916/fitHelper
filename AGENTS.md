@@ -3,9 +3,21 @@
 ## Requirements
 - For unclear requirements, ask questions instead of making assumptions.
 
+## Environment
+- Node.js >= 22 (managed via nvm; `.nvmrc` pinned to 22).
+- Electron 41 (bundles its own internal Node — different ABI from system Node).
+- `better-sqlite3` is a native C++ addon compiled to a platform-specific `.node` binary. It must match the active Node ABI **and** CPU architecture (arm64 / x64).
+- After switching Node versions, run `npm rebuild better-sqlite3` before running tests.
+- `npm run dev` automatically runs `electron-rebuild -f -w better-sqlite3` to recompile for Electron's ABI.
+
 ## Testing
 - Before adding or modifying code, always write unit tests covering at least the happy path.
 - After completing the code, run all unit tests to verify correctness.
+- Always run `nvm use` (or verify `node -v` is >= 22) before testing.
+- Unit tests: `npm test`
+- E2E tests: `npm run test:e2e`
+- If tests fail with an architecture mismatch on `better-sqlite3`, run `npm rebuild better-sqlite3`.
+- After `npm rebuild`, the next `npm run dev` will re-run `electron-rebuild` automatically.
 
 ## Version Control
 - Initialize a Git repository for every project.
