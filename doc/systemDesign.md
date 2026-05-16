@@ -1,6 +1,6 @@
 # FitHelper System Design Document
 
-> Version: 0.2.0
+> Version: 0.3.0
 >
 > A lightweight, intuitive health utility — providing quick, easy-to-understand
 > functions that help people save time and live healthier.
