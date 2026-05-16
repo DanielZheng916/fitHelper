@@ -59,4 +59,6 @@ export function seedData(db: Database.Database): void {
   if (trainingPlanCount.count === 0) {
     db.prepare('INSERT INTO training_plan (content) VALUES (?)').run('');
   }
+
+  db.prepare('INSERT OR IGNORE INTO training_goal (id, content) VALUES (1, \'\')').run();
 }

@@ -35,6 +35,17 @@ export interface DailyItem {
   createdAt: string;
 }
 
+export interface CoachSuggestion {
+  next_training_day: {
+    plan: string;
+    reason: string;
+  };
+  next_training_week: {
+    plan: string;
+    reason: string;
+  };
+}
+
 export interface ElectronAPI {
   converter: {
     convert: (
@@ -60,11 +71,13 @@ export interface ElectronAPI {
     suggest: (date: string) => Promise<CalorieItem | null>;
   };
   training: {
+    getGoal: () => Promise<string>;
+    saveGoal: (content: string) => Promise<void>;
     getRecords: () => Promise<string>;
     saveRecords: (content: string) => Promise<void>;
     getPlan: () => Promise<string>;
     savePlan: (content: string) => Promise<void>;
-    getCoachSuggestion: (force: boolean) => Promise<string>;
+    getCoachSuggestion: (force: boolean) => Promise<CoachSuggestion | string>;
   };
   settings: {
     getApiKeyStatus: () => Promise<{ configured: boolean }>;

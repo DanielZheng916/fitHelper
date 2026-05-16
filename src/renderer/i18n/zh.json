@@ -54,7 +54,11 @@
     "aiCoach": "AI 教练",
     "refresh": "刷新",
     "loading": "加载中...",
-    "noSuggestion": "保存训练数据以获取AI教练建议。"
+    "noSuggestion": "保存训练数据以获取AI教练建议。",
+    "goal": "目标",
+    "goalPlaceholder": "输入你的训练目标（如：6月21日波士顿10K取得好成绩）",
+    "nextDay": "下次训练建议",
+    "nextWeek": "下周训练计划"
   },
   "settings": {
     "title": "设置",

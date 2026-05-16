@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import FirstUseHint from '../Onboarding/FirstUseHint';
+import { CoachSuggestion } from '../../../shared/types';
 
 type Tab = 'records' | 'plan';
 
@@ -8,7 +9,8 @@ export default function TrainingLog() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('records');
   const [content, setContent] = useState('');
-  const [suggestion, setSuggestion] = useState('');
+  const [goal, setGoal] = useState('');
+  const [suggestion, setSuggestion] = useState<CoachSuggestion | string>('');
   const [loading, setLoading] = useState(false);
   const [apiKeyConfigured, setApiKeyConfigured] = useState<boolean | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -28,6 +30,17 @@ export default function TrainingLog() {
     })();
     return () => { cancelled = true; };
   }, [activeTab]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await window.electronAPI.training.getGoal();
+        setGoal(data);
+      } catch {
+        /* dev fallback */
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +68,14 @@ export default function TrainingLog() {
     return () => { cancelled = true; };
   }, []);
 
+  const handleGoalSave = useCallback(async () => {
+    try {
+      await window.electronAPI.training.saveGoal(goal);
+    } catch {
+      /* dev fallback */
+    }
+  }, [goal]);
+
   const handleSave = useCallback(async () => {
     try {
       if (activeTab === 'records') {
@@ -62,10 +83,8 @@ export default function TrainingLog() {
       } else {
         await window.electronAPI.training.savePlan(content);
       }
-      if (activeTab === 'records') {
-        const data = await window.electronAPI.training.getCoachSuggestion(false);
-        setSuggestion(data);
-      }
+      const data = await window.electronAPI.training.getCoachSuggestion(false);
+      setSuggestion(data);
     } catch {
       /* dev fallback */
     }
@@ -121,6 +140,29 @@ export default function TrainingLog() {
           {t('training.subtitle')}
         </span>
       </h1>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontWeight: 600, color: 'var(--color-accent)', marginRight: 8 }}>
+          🎯 {t('training.goal')}
+        </label>
+        <input
+          type="text"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          onBlur={handleGoalSave}
+          placeholder={t('training.goalPlaceholder')}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            marginTop: 4,
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 6,
+            color: 'var(--color-text-primary)',
+            fontSize: 'var(--font-size-base)',
+          }}
+        />
+      </div>
 
       <div style={{ display: 'flex', gap: 4, marginBottom: -1, position: 'relative', zIndex: 1 }}>
         <button style={tabStyle('records')} onClick={() => setActiveTab('records')}>
@@ -184,11 +226,52 @@ export default function TrainingLog() {
           style={{
             color: 'var(--color-text-primary)',
             lineHeight: 1.7,
-            whiteSpace: 'pre-wrap',
             fontSize: 'var(--font-size-sm)',
           }}
         >
-          {loading ? t('training.loading') : suggestion || t('training.noSuggestion')}
+          {loading ? (
+            t('training.loading')
+          ) : typeof suggestion === 'string' ? (
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {suggestion || t('training.noSuggestion')}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                  📅 {t('training.nextDay')}
+                </div>
+                <div style={{
+                  padding: 12,
+                  background: 'var(--color-bg-primary)',
+                  borderRadius: 6,
+                  border: '1px solid var(--color-border)',
+                }}>
+                  <div style={{ marginBottom: 8 }}>{suggestion.next_training_day.plan}</div>
+                  <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                    {suggestion.next_training_day.reason}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                  📋 {t('training.nextWeek')}
+                </div>
+                <div style={{
+                  padding: 12,
+                  background: 'var(--color-bg-primary)',
+                  borderRadius: 6,
+                  border: '1px solid var(--color-border)',
+                }}>
+                  <div style={{ marginBottom: 8 }}>{suggestion.next_training_week.plan}</div>
+                  <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                    {suggestion.next_training_week.reason}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

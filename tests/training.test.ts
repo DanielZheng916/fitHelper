@@ -33,23 +33,41 @@ describe('Training records and plan', () => {
     expect(records.content).toBe('');
     expect(plan.content).toBe('');
   });
+
+  it('should save and retrieve training goal', () => {
+    const goalContent = 'Boston 10K on June 21';
+    db.prepare('UPDATE training_goal SET content = ?, updated_at = CURRENT_TIMESTAMP').run(goalContent);
+    const row = db.prepare('SELECT content FROM training_goal LIMIT 1').get() as { content: string };
+    expect(row.content).toBe(goalContent);
+  });
+
+  it('should start with empty goal after seed', () => {
+    const goal = db.prepare('SELECT content FROM training_goal LIMIT 1').get() as { content: string };
+    expect(goal.content).toBe('');
+  });
 });
 
 describe('Hash computation', () => {
   it('should produce same hash for same input', () => {
-    const h1 = computeHash('plan A', 'records A');
-    const h2 = computeHash('plan A', 'records A');
+    const h1 = computeHash('goal A', 'plan A', 'records A');
+    const h2 = computeHash('goal A', 'plan A', 'records A');
     expect(h1).toBe(h2);
   });
 
   it('should produce different hash for different input', () => {
-    const h1 = computeHash('plan A', 'records A');
-    const h2 = computeHash('plan B', 'records A');
+    const h1 = computeHash('goal A', 'plan A', 'records A');
+    const h2 = computeHash('goal A', 'plan B', 'records A');
+    expect(h1).not.toBe(h2);
+  });
+
+  it('should produce different hash when goal changes', () => {
+    const h1 = computeHash('goal A', 'plan A', 'records A');
+    const h2 = computeHash('goal B', 'plan A', 'records A');
     expect(h1).not.toBe(h2);
   });
 
   it('should return a hex string', () => {
-    const h = computeHash('test', 'test');
+    const h = computeHash('goal', 'test', 'test');
     expect(h).toMatch(/^[0-9a-f]{64}$/);
   });
 });

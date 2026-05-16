@@ -54,7 +54,11 @@
     "aiCoach": "AI Coach",
     "refresh": "Refresh",
     "loading": "Loading...",
-    "noSuggestion": "Save training data to get AI coaching suggestions."
+    "noSuggestion": "Save training data to get AI coaching suggestions.",
+    "goal": "Goal",
+    "goalPlaceholder": "Enter your training goal (e.g., Get a good score in June 21th's Boston 10K)",
+    "nextDay": "Next Training Day",
+    "nextWeek": "Next Training Week"
   },
   "settings": {
     "title": "Settings",

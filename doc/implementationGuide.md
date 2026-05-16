@@ -226,11 +226,13 @@ export interface ElectronAPI {
     suggest: (date: string) => Promise<CalorieItem | null>;
   };
   training: {
+    getGoal: () => Promise<string>;
+    saveGoal: (content: string) => Promise<void>;
     getRecords: () => Promise<string>;
     saveRecords: (content: string) => Promise<void>;
     getPlan: () => Promise<string>;
     savePlan: (content: string) => Promise<void>;
-    getCoachSuggestion: (force: boolean) => Promise<string>;
+    getCoachSuggestion: (force: boolean) => Promise<CoachSuggestion | string>;
   };
 }
 ```
@@ -255,7 +257,7 @@ declare global {
 
 ### 2.3 Migrations — `src/main/db/migrations.ts`
 
-Create all 7 tables exactly as specified in `systemDesign.md` Section 2.4. Use `CREATE TABLE IF NOT EXISTS` for idempotency. The tables are:
+Create all 8 tables exactly as specified in `systemDesign.md` Section 2.4. Use `CREATE TABLE IF NOT EXISTS` for idempotency. The tables are:
 
 1. `conversion_history`
 2. `calorie_items`
@@ -263,7 +265,8 @@ Create all 7 tables exactly as specified in `systemDesign.md` Section 2.4. Use `
 4. `daily_items`
 5. `training_records`
 6. `training_plan`
-7. `ai_coach_history`
+7. `training_goal`
+8. `ai_coach_history`
 
 Export a `runMigrations(db)` function.
 
@@ -271,7 +274,7 @@ Export a `runMigrations(db)` function.
 
 Insert the preset calorie items from `systemDesign.md` Section 1.4.1 into the `calorie_items` table. Use `INSERT OR IGNORE` to avoid duplicates on re-run. Set `is_preset = 1` for all preset items. Assign `sort_order` sequentially within each category.
 
-Also insert an empty row into `training_records` and `training_plan` (both with `content = ''`) so the single-row tables are initialized.
+Also insert an empty row into `training_records`, `training_plan`, and `training_goal` (all with `content = ''`) so the single-row tables are initialized.
 
 Export a `seedData(db)` function.
 
@@ -292,7 +295,7 @@ Use `contextBridge.exposeInMainWorld` to expose `electronAPI` matching the `Elec
 ### 2.7 Tests
 
 Write unit tests in `tests/db.test.ts`:
-- Test that `runMigrations` creates all 7 tables (use an in-memory SQLite database: `new Database(':memory:')`).
+- Test that `runMigrations` creates all 8 tables (use an in-memory SQLite database: `new Database(':memory:')`).
 - Test that `seedData` inserts the correct number of preset calorie items (24 items total: 14 主食 + 6 小食 + 4 酒).
 - Test that `seedData` is idempotent (running it twice doesn't duplicate).
 
@@ -494,20 +497,24 @@ git commit -m "feat(phase4): calorie library (Tool 2) with CRUD, daily tracker (
 ### 5.1 Tool 4: Training Log — `src/renderer/components/TrainingLog/`
 
 **`TrainingLog.tsx`** — main component:
-- **Tab toggle**: Two tabs at the top — "Records" and "Plan". State tracks which is active.
-- **Text area**: Large, full-width `<textarea>` (or a styled contenteditable div) for freeform text input. Monospace font for readability.
+- **Goal field**: A text input above the tabs where the user enters their training objective (e.g. "Get a good score in June 21th's Boston 10K race"). On mount, load from `training:getGoal`. Auto-save on blur via `training:saveGoal`.
+- **Tab toggle**: Two tabs — "Records" and "Plan". State tracks which is active.
+- **Text area**: Large, full-width `<textarea>` for freeform text input. Monospace font for readability.
 - On mount, load content from IPC (`training:getRecords` or `training:getPlan` depending on active tab).
 - Auto-save on blur or Cmd+S: call `training:saveRecords` or `training:savePlan`.
 - **AI Coach panel** below the text area:
-  - Displays the most recent coach suggestion.
+  - Renders the structured `CoachSuggestion` JSON as two cards: "Next Training Day" and "Next Training Week". Each card shows the plan suggestion text and a 2-sentence reason below it.
+  - If the response is a plain string (error/fallback), render it as pre-wrapped text.
   - "Refresh" button to manually trigger `training:getCoachSuggestion(force: true)`.
   - Loading spinner while waiting for API response.
-  - On save of training records, automatically call `training:getCoachSuggestion(force: false)`.
+  - On save of training records **or training plan**, automatically call `training:getCoachSuggestion(force: false)`.
 - Follow wireframe from `systemDesign.md` Section 3.3.4.
 
 ### 5.2 IPC handlers for Tool 4 — `src/main/ipc/training.ts`
 
 Implement all `training:*` channels:
+- `training:getGoal` — return `content` from the single row in `training_goal`.
+- `training:saveGoal` — update the single row in `training_goal`, set `updated_at`.
 - `training:getRecords` — return `content` from the single row in `training_records`.
 - `training:saveRecords` — update the single row in `training_records`, set `updated_at`.
 - `training:getPlan` — return `content` from the single row in `training_plan`.
@@ -516,56 +523,62 @@ Implement all `training:*` channels:
 
 ### 5.3 OpenAI service — `src/main/services/openai.ts`
 
-- Read API key from `keys/open-ai-api-key.txt` using `fs.readFileSync`. Trim whitespace. Store in a module-level variable (read once at import time).
-- If the key file doesn't exist or is empty, log a warning and return a fallback message ("API key not configured").
+- Read API key from encrypted storage (Electron `safeStorage`) or dev fallback (`keys/open-ai-api-key.txt`). Trim whitespace. Cache in a module-level variable.
+- If the key is not configured, return a fallback message ("API key not configured").
 - Create an OpenAI client instance using the `openai` npm package.
-- Export an `async function getCoachSuggestion(plan: string, records: string, force: boolean): Promise<string>` that:
-  1. Computes SHA-256 hash of `plan + records`.
-  2. If `force === false`, check `ai_coach_history` table for a row with matching `prompt_hash`. If found, return the cached `response`.
+- Export an `async function getCoachSuggestion(db, goal: string, plan: string, records: string, force: boolean): Promise<CoachSuggestion | string>` that:
+  1. Computes SHA-256 hash of `goal + plan + records`.
+  2. If `force === false`, check `ai_coach_history` table for a row with matching `prompt_hash`. If found, parse and return the cached `response`.
   3. Otherwise, call the OpenAI API:
-     - Model: `gpt-5.2`
-     - System message: the prompt from `systemDesign.md` Section 2.5 (the "concise running and fitness coach" prompt).
-     - User message: `"Training Plan:\n{plan}\n\nTraining Records:\n{records}"`
-     - Max tokens: 300
+     - Model: `gpt-5.4`
+     - System message: the structured JSON prompt from `systemDesign.md` Section 2.5.
+     - User message: `"Training Goal:\n{goal}\n\nTraining Plan:\n{plan}\n\nTraining Records:\n{records}"`
+     - `response_format: { type: 'json_object' }` to enforce valid JSON output.
      - Temperature: 0.7
-  4. Save the response to `ai_coach_history` with the `prompt_hash` and `model`.
-  5. Return the response text.
+     - **No** `max_completion_tokens` parameter — let the model produce a complete response.
+  4. Parse the response JSON into a `CoachSuggestion` object. If parsing fails, return the raw text as a string fallback.
+  5. Save the raw JSON string to `ai_coach_history` with the `prompt_hash` and `model` (`gpt-5.4`).
+  6. Return the parsed `CoachSuggestion` object.
 - Wrap the API call in a try/catch. On failure, return an error message string (don't throw — the UI should display it gracefully).
 
 ### 5.4 Wire up `training:getCoachSuggestion` IPC handler
 
 In `src/main/ipc/training.ts`, the handler for `training:getCoachSuggestion`:
 1. Receives `{ force: boolean }`.
-2. Reads current records and plan from the database.
-3. Calls `getCoachSuggestion(plan, records, force)` from the openai service.
-4. Returns the suggestion string.
+2. Reads current goal, records, and plan from the database.
+3. Calls `getCoachSuggestion(db, goal, plan, records, force)` from the openai service.
+4. Returns the `CoachSuggestion` object or error string.
 
 ### 5.5 Tests
 
 Write tests in `tests/training.test.ts`:
 - Save and retrieve training records.
 - Save and retrieve training plan.
+- Save and retrieve training goal.
 - Hash computation: same input produces same hash; different input produces different hash.
+- Hash includes goal: changing only the goal produces a different hash.
 
 Write tests in `tests/openai.test.ts`:
-- Test prompt assembly: verify the system and user messages are formatted correctly.
+- Test prompt assembly: verify the system message contains JSON schema instructions, and the user message includes "Training Goal:", "Training Plan:", and "Training Records:" sections.
 - Test hash-based caching: mock the DB, verify that a cached response is returned when the hash matches.
+- Test `CoachSuggestion` type: verify the expected JSON structure with `next_training_day` and `next_training_week` fields.
+- Verify model string is `gpt-5.4`.
 - Do NOT call the real OpenAI API in tests — mock the `openai` client.
 
 ### 5.6 Exit Check
 
 ```bash
 npm test                 # all tests pass
-npm run dev              # Tool 4 shows records/plan tabs, AI Coach panel visible
+npm run dev              # Tool 4 shows goal field, records/plan tabs, AI Coach panel with structured cards
 ```
 
-If the API key in `keys/open-ai-api-key.txt` is valid, clicking "Refresh" should return a real AI suggestion. If not, the panel should show the fallback message gracefully.
+If the API key is configured, clicking "Refresh" should return a structured AI suggestion rendered as two cards. If not, the panel should show the fallback message gracefully.
 
 ### 5.7 Commit
 
 ```bash
 git add -A
-git commit -m "feat(phase5): training log (Tool 4) with records, plan, and AI coach via OpenAI"
+git commit -m "feat(phase5): training log (Tool 4) with goal, records, plan, and structured AI coach via OpenAI gpt-5.4"
 ```
 
 ---
@@ -575,7 +588,7 @@ git commit -m "feat(phase5): training log (Tool 4) with records, plan, and AI co
 ### 6.1 Internationalization (i18n)
 
 **`src/renderer/i18n/zh.json`** — Chinese translations for all UI strings:
-- Sidebar labels, tool titles, button text ("添加", "编辑", "删除", "搜索", "保存"), placeholders, error messages, suggestion text, AI coach labels.
+- Sidebar labels, tool titles, button text ("添加", "编辑", "删除", "搜索", "保存"), placeholders, error messages, AI coach labels, goal placeholder, "Next Training Day"/"Next Training Week" section headers.
 
 **`src/renderer/i18n/en.json`** — English translations for the same keys.
 
@@ -645,9 +658,9 @@ git commit -m "feat(phase6): i18n (zh/en), keyboard shortcuts, error toasts, REA
 After completing all 6 phases, the project should have:
 - 6 git commits (one per phase).
 - A fully functional Electron + React + TypeScript app.
-- 4 working tools: Pace Converter, Calorie Library, Daily Tracker, Training Log + AI Coach.
+- 4 working tools: Pace Converter, Calorie Library, Daily Tracker, Training Log + AI Coach (with goal input and structured JSON responses).
 - SQLite persistence for all data.
-- OpenAI integration for AI coaching.
+- OpenAI integration for AI coaching via `gpt-5.4` with structured JSON output.
 - Chinese/English i18n.
 - Dark-mode UI matching the design spec.
 - macOS `.dmg` build output.

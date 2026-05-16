@@ -10,7 +10,7 @@ describe('Database migrations', () => {
     db = new Database(':memory:');
   });
 
-  it('should create all 7 tables', () => {
+  it('should create all 8 tables', () => {
     runMigrations(db);
     const tables = db
       .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
@@ -22,6 +22,7 @@ describe('Database migrations', () => {
       'conversion_history',
       'daily_items',
       'daily_targets',
+      'training_goal',
       'training_plan',
       'training_records',
     ]);

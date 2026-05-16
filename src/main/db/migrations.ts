@@ -51,6 +51,12 @@ export function runMigrations(db: Database.Database): void {
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS training_goal (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      content TEXT NOT NULL DEFAULT '',
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS ai_coach_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       prompt_hash TEXT NOT NULL,

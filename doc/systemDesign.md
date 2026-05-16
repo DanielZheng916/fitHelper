@@ -1,6 +1,6 @@
 # FitHelper System Design Document
 
-> Version: 0.3.0
+> Version: 0.4.0
 >
 > A lightweight, intuitive health utility — providing quick, easy-to-understand
 > functions that help people save time and live healthier.
@@ -35,9 +35,10 @@ FitHelper is a macOS desktop toolset containing four integrated tools plus a Set
 flowchart LR
     T2[Tool2_CalorieLibrary] -->|food items + categories| T3[Tool3_DailyTracker]
     T3 -->|suggestion engine reads| T2
-    T4Records[Tool4_TrainingRecords] -->|combined context| AI[OpenAI_API]
+    T4Goal[Tool4_TrainingGoal] -->|combined context| AI[OpenAI_API]
+    T4Records[Tool4_TrainingRecords] -->|combined context| AI
     T4Plan[Tool4_TrainingPlan] -->|combined context| AI
-    AI -->|brief coaching suggestion| T4Display[Tool4_CoachDisplay]
+    AI -->|structured coaching JSON| T4Display[Tool4_CoachDisplay]
     T1[Tool1_PaceConverter] -.->|user may reference pace| T4Records
 ```
 
@@ -158,18 +159,24 @@ flowchart LR
 - **Format**: Freeform text supporting phases, weeks, workout types (A/B/C), and milestone goals.
 - **Editable**: User can update the plan at any time as the program evolves.
 
-#### 1.6.3 AI Coach
+#### 1.6.3 Training Goal
 
-- **Data sent to LLM**: The system combines the training records and the training plan into a single context payload, then sends it to the OpenAI API.
+- **Goal input**: A dedicated text field above the tabs where the user enters their current training goal (e.g. "Get a good score in June 21th's Boston 10K race").
+- **Persistence**: Stored in a single-row `training_goal` table in the database.
+- **Usage**: The goal is included as context in every AI Coach request, so the model can tailor suggestions toward the user's specific objective.
+
+#### 1.6.4 AI Coach
+
+- **Data sent to LLM**: The system combines the training goal, training plan, and training records into a single context payload, then sends it to the OpenAI API.
 - **Trigger modes**:
-  - **Automatic**: Triggered when the user saves a new training entry.
+  - **Automatic**: Triggered when the user saves training records **or** the training plan.
   - **Manual**: A "refresh analysis" button the user can press at any time.
-- **Response requirements**: The AI must produce a **brief, actionable** suggestion — not a long essay. The output should help the user:
-  - Understand current training status at a glance.
-  - Know what to do next without additional research.
-  - Avoid injury through pacing guidance.
-  - Maximize ability gain based on progress trends.
-- **Model**: `gpt-5.2` via OpenAI API.
+- **Response format**: The AI returns a **structured JSON** object containing:
+  - **Next training day**: A specific workout suggestion and a 2-sentence reason.
+  - **Next training week**: A week-level plan suggestion and a 2-sentence reason.
+- **Response display**: The UI parses the JSON and renders it as two clearly separated cards, making it easy for the trainer to read and apply.
+- **No token limit**: The API call does not set `max_completion_tokens`, allowing the model to produce a complete response.
+- **Model**: `gpt-5.4` via OpenAI API.
 - **API key**: Managed via the in-app Settings screen. The key is encrypted using Electron's `safeStorage` API (backed by macOS Keychain) and persisted to `userData/api-key.enc`. Users set the key once; it survives app restarts and updates. A dev-mode fallback reads from `keys/open-ai-api-key.txt` in the working directory.
 
 ---
@@ -342,6 +349,16 @@ Single-row table — the entire training log is stored as one text blob, matchin
 
 Single-row table — same rationale as training_records.
 
+#### Table: `training_goal`
+
+| Column | Type | Constraint | Description |
+|--------|------|-----------|-------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT | |
+| content | TEXT | NOT NULL DEFAULT '' | User's training goal text (e.g. "Boston 10K on June 21") |
+| updated_at | TEXT | NOT NULL DEFAULT CURRENT_TIMESTAMP | |
+
+Single-row table — stores the user's current training objective. Initialized with an empty string. Included in every AI Coach request as context.
+
 #### Table: `ai_coach_history`
 
 | Column | Type | Constraint | Description |
@@ -358,26 +375,44 @@ Caches recent AI responses to avoid redundant API calls when content hasn't chan
 
 #### Configuration
 
-- **Model**: `gpt-5.2`
+- **Model**: `gpt-5.4` (model id: `gpt-5.4`)
 - **API key source**: Encrypted via Electron `safeStorage` (macOS Keychain) and stored at `userData/api-key.enc`. Users configure the key through the in-app Settings screen. A dev-mode fallback reads from `keys/open-ai-api-key.txt` in the working directory. The decrypted key is held in main-process memory only — never written to the database.
-- **Max tokens (response)**: ~300 tokens (keeps suggestions brief).
+- **No token limit**: The `max_completion_tokens` parameter is **not** set, allowing the model to produce a complete response without truncation.
+- **Response format**: `response_format: { type: 'json_object' }` to enforce valid JSON output.
 - **Temperature**: 0.7 (balanced between consistency and variety).
 
 #### Prompt Design
 
-The system prompt instructs the model to act as a concise running coach:
+The system prompt instructs the model to act as a structured running coach that returns JSON:
 
 ```
 System: You are a concise running and fitness coach. The user will provide
-their training log and training plan. Analyze their current progress,
-compare it to the plan, and provide a brief suggestion (3-5 sentences max).
-Focus on: current status assessment, what to do next, injury prevention,
-and how to maximize progress. Reply in the same language as the user's data.
+their training goal, training plan, and training log. Analyze their current
+progress against the plan and goal.
+
+You MUST reply with valid JSON only, no markdown, no extra text.
+Use this exact schema:
+
+{
+  "next_training_day": {
+    "plan": "<specific workout suggestion for the next training day>",
+    "reason": "<2-sentence explanation>"
+  },
+  "next_training_week": {
+    "plan": "<training plan suggestion for the coming week>",
+    "reason": "<2-sentence explanation>"
+  }
+}
+
+Reply in the same language as the user's data.
 ```
 
 The user message concatenates:
 
 ```
+Training Goal:
+{training_goal.content}
+
 Training Plan:
 {training_plan.content}
 
@@ -385,9 +420,28 @@ Training Records:
 {training_records.content}
 ```
 
+#### Response Schema
+
+The AI response is parsed into a `CoachSuggestion` object:
+
+```typescript
+interface CoachSuggestion {
+  next_training_day: {
+    plan: string;   // specific workout suggestion
+    reason: string; // 2-sentence explanation
+  };
+  next_training_week: {
+    plan: string;   // week-level plan suggestion
+    reason: string; // 2-sentence explanation
+  };
+}
+```
+
+If JSON parsing fails, the raw text is displayed as a fallback.
+
 #### Trigger Logic
 
-1. **Auto-trigger**: After the user saves an edit to training records, compute a SHA-256 hash of (plan + records). If the hash differs from the most recent `ai_coach_history.prompt_hash`, call the API and cache the result.
+1. **Auto-trigger**: After the user saves an edit to training records **or** the training plan, compute a SHA-256 hash of (goal + plan + records). If the hash differs from the most recent `ai_coach_history.prompt_hash`, call the API and cache the result.
 2. **Manual trigger**: Always calls the API regardless of hash (user explicitly wants a fresh analysis).
 
 ### 2.6 IPC Channel Definitions
@@ -410,11 +464,13 @@ All renderer-to-main communication goes through Electron IPC with typed channels
 | `daily:deleteItem` | renderer -> main | `{ id: number }` | `void` |
 | `daily:reorder` | renderer -> main | `{ ids: number[] }` | `void` |
 | `daily:suggest` | renderer -> main | `{ date: string }` | `CalorieItem \| null` |
+| `training:getGoal` | renderer -> main | — | `string` |
+| `training:saveGoal` | renderer -> main | `{ content: string }` | `void` |
 | `training:getRecords` | renderer -> main | — | `string` |
 | `training:saveRecords` | renderer -> main | `{ content: string }` | `void` |
 | `training:getPlan` | renderer -> main | — | `string` |
 | `training:savePlan` | renderer -> main | `{ content: string }` | `void` |
-| `training:getCoachSuggestion` | renderer -> main | `{ force: boolean }` | `string` |
+| `training:getCoachSuggestion` | renderer -> main | `{ force: boolean }` | `CoachSuggestion \| string` |
 | `settings:getApiKeyStatus` | renderer -> main | — | `{ configured: boolean }` |
 | `settings:setApiKey` | renderer -> main | `{ key: string }` | `void` |
 | `settings:clearApiKey` | renderer -> main | — | `void` |
@@ -624,41 +680,57 @@ flowchart LR
 #### 3.3.4 Training Log + AI Coach
 
 ```
-┌──────────────────────────────────────┐
-│  Training Log / 训练日志 + AI教练     │
-│                                      │
-│  [Records]  [Plan]                   │
-│  ─────────────────────────────────── │
-│  ┌────────────────────────────────┐  │
-│  │ Week 85                        │  │
-│  │ 4.20                           │  │
-│  │ 平板卷腹*4                     │  │
-│  │ 腿推*5                         │  │
-│  │ ...                            │  │
-│  │                                │  │
-│  │ 4.25                           │  │
-│  │ 5C                             │  │
-│  │ 4.8 mph × 65 min              │  │
-│  │ 7:46 心率161                   │  │
-│  │ 合理的降速                     │  │
-│  └────────────────────────────────┘  │
-│                                      │
-│  ┌─ AI Coach ───────── [🔄 Refresh]─┐│
-│  │ 当前状态: 第5周进行中，C课完成   ││
-│  │ 65min。心率161，控制得不错。      ││
-│  │                                   ││
-│  │ 建议: 下周A课尝试5.0 mph × 50   ││
-│  │ min，保持心率在170以下。B课维持   ││
-│  │ 间歇强度，注意休息日拉伸。       ││
-│  └───────────────────────────────────┘│
-└──────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│  Training Log / 训练日志 + AI教练         │
+│                                          │
+│  🎯 Goal: [Get a good score in June     ]│
+│  [       21th's Boston 10K race         ]│
+│                                          │
+│  [Records]  [Plan]                       │
+│  ─────────────────────────────────────── │
+│  ┌────────────────────────────────────┐  │
+│  │ Week 85                            │  │
+│  │ 4.20                               │  │
+│  │ 平板卷腹*4                         │  │
+│  │ 腿推*5                             │  │
+│  │ ...                                │  │
+│  │                                    │  │
+│  │ 4.25                               │  │
+│  │ 5C                                 │  │
+│  │ 4.8 mph × 65 min                  │  │
+│  │ 7:46 心率161                       │  │
+│  │ 合理的降速                         │  │
+│  └────────────────────────────────────┘  │
+│                                          │
+│  ┌─ AI Coach ─────────── [🔄 Refresh]──┐│
+│  │                                      ││
+│  │  📅 Next Training Day                ││
+│  │  ┌──────────────────────────────┐    ││
+│  │  │ 5.0 mph × 50 min, HR < 170  │    ││
+│  │  │                              │    ││
+│  │  │ 心率控制良好，可以小幅提速。 │    ││
+│  │  │ 保持有氧基础，避免过度疲劳。 │    ││
+│  │  └──────────────────────────────┘    ││
+│  │                                      ││
+│  │  📋 Next Training Week               ││
+│  │  ┌──────────────────────────────┐    ││
+│  │  │ A课: 5.0×50min, B课: 间歇,  │    ││
+│  │  │ C课: 4.8×65min              │    ││
+│  │  │                              │    ││
+│  │  │ 第6周应巩固耐力基础。       │    ││
+│  │  │ 长跑可尝试突破70分钟。      │    ││
+│  │  └──────────────────────────────┘    ││
+│  └──────────────────────────────────────┘│
+└──────────────────────────────────────────┘
 ```
 
+- **Goal field**: A text input above the tabs where the user enters their training objective. Auto-saves on blur. Included in every AI Coach request.
 - **Tab toggle** between Records and Plan views — both are plain text editors.
-- **AI Coach panel** sits below the text area, always visible. Shows the most recent AI suggestion.
+- **AI Coach panel** sits below the text area, always visible. Renders the structured JSON response as two cards: "Next Training Day" and "Next Training Week", each showing the plan suggestion and a 2-sentence reason.
 - **Refresh button** (🔄) triggers a manual API call.
-- **Auto-trigger** fires when user finishes editing and saves (blur or Cmd+S).
+- **Auto-trigger** fires when user finishes editing records **or plan** and saves (blur or Cmd+S).
 - **Loading state**: Shows a subtle spinner while waiting for the API response.
+- **Error fallback**: If the AI response is not valid JSON (e.g. error message), it is displayed as plain pre-wrapped text.
 
 ### 3.4 Interaction Patterns
 
@@ -690,4 +762,4 @@ flowchart LR
 
 ---
 
-*End of System Design Document — FitHelper v0.2.0*
+*End of System Design Document — FitHelper v0.4.0*

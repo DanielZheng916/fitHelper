@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     suggest: (date: string) => ipcRenderer.invoke('daily:suggest', { date }),
   },
   training: {
+    getGoal: () => ipcRenderer.invoke('training:getGoal'),
+    saveGoal: (content: string) => ipcRenderer.invoke('training:saveGoal', { content }),
     getRecords: () => ipcRenderer.invoke('training:getRecords'),
     saveRecords: (content: string) => ipcRenderer.invoke('training:saveRecords', { content }),
     getPlan: () => ipcRenderer.invoke('training:getPlan'),
