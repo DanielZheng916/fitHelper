@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import FirstUseHint from '../Onboarding/FirstUseHint';
 
 interface HistoryRecord {
   id: number;
@@ -92,6 +93,7 @@ export default function PaceConverter() {
 
   return (
     <div>
+      <FirstUseHint toolId={1}>{t('onboarding.hint.tool1')}</FirstUseHint>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
         {t('converter.title')}{' '}
         <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>

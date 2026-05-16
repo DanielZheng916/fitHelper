@@ -64,7 +64,11 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
+      <Sidebar
+        activeTool={activeTool}
+        onToolChange={setActiveTool}
+        onStartTour={() => launchGuidedTour(setActiveTool)}
+      />
       <main style={{ flex: 1, overflow: 'auto', padding: 32 }}>{renderContent()}</main>
       <ToastContainer />
       {showWizard && <WelcomeWizard onComplete={handleWizardComplete} />}

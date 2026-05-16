@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import FirstUseHint from '../Onboarding/FirstUseHint';
 
 type Tab = 'records' | 'plan';
 
@@ -9,6 +10,7 @@ export default function TrainingLog() {
   const [content, setContent] = useState('');
   const [suggestion, setSuggestion] = useState('');
   const [loading, setLoading] = useState(false);
+  const [apiKeyConfigured, setApiKeyConfigured] = useState<boolean | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -33,6 +35,19 @@ export default function TrainingLog() {
       try {
         const data = await window.electronAPI.training.getCoachSuggestion(false);
         if (!cancelled) setSuggestion(data);
+      } catch {
+        /* dev fallback */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { configured } = await window.electronAPI.settings.getApiKeyStatus();
+        if (!cancelled) setApiKeyConfigured(configured);
       } catch {
         /* dev fallback */
       }
@@ -92,6 +107,14 @@ export default function TrainingLog() {
 
   return (
     <div>
+      <FirstUseHint toolId={4}>
+        {t('onboarding.hint.tool4')}
+        {apiKeyConfigured === false && (
+          <span style={{ display: 'block', marginTop: 6 }}>
+            {t('onboarding.hint.noApiKey')}
+          </span>
+        )}
+      </FirstUseHint>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
         {t('training.title')}{' '}
         <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>

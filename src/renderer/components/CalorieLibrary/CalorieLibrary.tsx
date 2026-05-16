@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import FirstUseHint from '../Onboarding/FirstUseHint';
 
 interface CalorieItem {
   id: number;
@@ -127,6 +128,7 @@ export default function CalorieLibrary() {
 
   return (
     <div>
+      <FirstUseHint toolId={2}>{t('onboarding.hint.tool2')}</FirstUseHint>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
         {t('calorie.title')}{' '}
         <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>

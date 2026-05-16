@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 interface SidebarProps {
   activeTool: number;
   onToolChange: (id: number) => void;
+  onStartTour?: () => void;
 }
 
 const TOOL_KEYS = [
@@ -13,7 +14,7 @@ const TOOL_KEYS = [
   { id: 5, key: 'sidebar.tool5' },
 ];
 
-export default function Sidebar({ activeTool, onToolChange }: SidebarProps) {
+export default function Sidebar({ activeTool, onToolChange, onStartTour }: SidebarProps) {
   const { t, i18n } = useTranslation();
 
   const toggleLang = () => {
@@ -50,6 +51,7 @@ export default function Sidebar({ activeTool, onToolChange }: SidebarProps) {
           return (
             <button
               key={tool.id}
+              id={`sidebar-tool-${tool.id}`}
               onClick={() => onToolChange(tool.id)}
               style={{
                 display: 'block',
@@ -70,8 +72,17 @@ export default function Sidebar({ activeTool, onToolChange }: SidebarProps) {
           );
         })}
       </nav>
-      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--color-border)' }}>
+      <div
+        style={{
+          padding: '12px 20px',
+          borderTop: '1px solid var(--color-border)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
         <button
+          id="sidebar-lang-toggle"
           onClick={toggleLang}
           style={{
             padding: '6px 14px',
@@ -85,6 +96,25 @@ export default function Sidebar({ activeTool, onToolChange }: SidebarProps) {
         >
           {t('sidebar.langToggle')}
         </button>
+        {onStartTour && (
+          <button
+            id="sidebar-tour-btn"
+            onClick={onStartTour}
+            title={t('onboarding.tour.relaunch')}
+            style={{
+              padding: '6px 10px',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: 4,
+              color: 'var(--color-text-secondary)',
+              cursor: 'pointer',
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 600,
+            }}
+          >
+            ?
+          </button>
+        )}
       </div>
     </aside>
   );

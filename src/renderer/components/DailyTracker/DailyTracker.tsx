@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import FirstUseHint from '../Onboarding/FirstUseHint';
 import {
   DndContext,
   closestCenter,
@@ -252,6 +253,7 @@ export default function DailyTracker() {
 
   return (
     <div>
+      <FirstUseHint toolId={3}>{t('onboarding.hint.tool3')}</FirstUseHint>
       <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 24 }}>
         {t('daily.title')}{' '}
         <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>{t('daily.subtitle')}</span>
