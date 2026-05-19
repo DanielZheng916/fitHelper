@@ -1,6 +1,8 @@
 import { ipcMain } from 'electron';
 import Database from 'better-sqlite3';
 
+export const DEFAULT_TARGET_KCAL = 1800;
+
 interface DailyItemRow {
   id: number;
   date: string;
@@ -34,6 +36,34 @@ function rowToDailyItem(r: DailyItemRow) {
     calorieItemId: r.calorie_item_id,
     createdAt: r.created_at,
   };
+}
+
+interface TargetRow {
+  id: number;
+  date: string;
+  target_calories: number;
+}
+
+export function getOrCreateTarget(
+  db: Database.Database,
+  date: string
+): { id: number; date: string; targetCalories: number } {
+  const row = db.prepare('SELECT * FROM daily_targets WHERE date = ?').get(date) as TargetRow | undefined;
+  if (row) {
+    return { id: row.id, date: row.date, targetCalories: row.target_calories };
+  }
+
+  const prev = db
+    .prepare('SELECT target_calories FROM daily_targets WHERE date < ? ORDER BY date DESC LIMIT 1')
+    .get(date) as { target_calories: number } | undefined;
+  const inherited = prev ? prev.target_calories : DEFAULT_TARGET_KCAL;
+
+  db.prepare(
+    'INSERT INTO daily_targets (date, target_calories) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET target_calories = excluded.target_calories'
+  ).run(date, inherited);
+
+  const created = db.prepare('SELECT * FROM daily_targets WHERE date = ?').get(date) as TargetRow;
+  return { id: created.id, date: created.date, targetCalories: created.target_calories };
 }
 
 export function parseMaxCalories(cal: string): number {
@@ -122,11 +152,7 @@ function calorieRowToItem(r: CalorieRow) {
 
 export function registerDailyHandlers(db: Database.Database): void {
   ipcMain.handle('daily:getTarget', async (_event, args: { date: string }) => {
-    const row = db.prepare('SELECT * FROM daily_targets WHERE date = ?').get(args.date) as
-      | { id: number; date: string; target_calories: number }
-      | undefined;
-    if (!row) return null;
-    return { id: row.id, date: row.date, targetCalories: row.target_calories };
+    return getOrCreateTarget(db, args.date);
   });
 
   ipcMain.handle(

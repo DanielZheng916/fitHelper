@@ -144,36 +144,7 @@ export default function DailyTracker() {
   }, [date]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [tgt, di, lib] = await Promise.all([
-          window.electronAPI.daily.getTarget(date),
-          window.electronAPI.daily.getItems(date),
-          window.electronAPI.calorie.getAll(),
-        ]);
-        if (cancelled) return;
-
-        if (!tgt) {
-          await window.electronAPI.daily.setTarget(date, 1800);
-          if (cancelled) return;
-          await load();
-          return;
-        }
-
-        setTarget(tgt);
-        setTargetInput(String(tgt.targetCalories));
-        setItems(di);
-        setLibraryItems(lib);
-
-        const sug = await window.electronAPI.daily.suggest(date);
-        if (cancelled) return;
-        setSuggestion(sug);
-      } catch {
-        /* dev fallback */
-      }
-    })();
-    return () => { cancelled = true; };
+    load();
   }, [date, load]);
 
   const eatenSum = items.filter((i) => i.isEaten).reduce((s, i) => s + i.calories, 0);

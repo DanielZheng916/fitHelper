@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { runMigrations } from '../src/main/db/migrations';
+import { getOrCreateTarget, DEFAULT_TARGET_KCAL } from '../src/main/ipc/dailyTracker';
 
 function getToday(): string {
   const d = new Date();
@@ -138,5 +139,56 @@ describe('Daily Tracker', () => {
       .all('2026-04-26') as { name: string }[];
     expect(rows[0].name).toBe('B');
     expect(rows[1].name).toBe('A');
+  });
+});
+
+describe('getOrCreateTarget — target inheritance', () => {
+  let db: Database.Database;
+
+  beforeEach(() => {
+    db = new Database(':memory:');
+    runMigrations(db);
+  });
+
+  it('should return DEFAULT_TARGET_KCAL when no history exists', () => {
+    const result = getOrCreateTarget(db, '2026-05-19');
+    expect(result.targetCalories).toBe(DEFAULT_TARGET_KCAL);
+    expect(result.date).toBe('2026-05-19');
+  });
+
+  it('should persist the auto-created target so subsequent calls return the same row', () => {
+    const first = getOrCreateTarget(db, '2026-05-19');
+    const second = getOrCreateTarget(db, '2026-05-19');
+    expect(first.id).toBe(second.id);
+    expect(first.targetCalories).toBe(second.targetCalories);
+  });
+
+  it('should inherit the most recent previous day target', () => {
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-05-17', 2200);
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-05-18', 2500);
+
+    const result = getOrCreateTarget(db, '2026-05-19');
+    expect(result.targetCalories).toBe(2500);
+  });
+
+  it('should not inherit from a future date', () => {
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-05-20', 3000);
+
+    const result = getOrCreateTarget(db, '2026-05-19');
+    expect(result.targetCalories).toBe(DEFAULT_TARGET_KCAL);
+  });
+
+  it('should return existing target without overwriting it', () => {
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-05-19', 2100);
+
+    const result = getOrCreateTarget(db, '2026-05-19');
+    expect(result.targetCalories).toBe(2100);
+  });
+
+  it('should inherit across non-consecutive days', () => {
+    db.prepare('INSERT INTO daily_targets (date, target_calories) VALUES (?, ?)').run('2026-05-10', 1600);
+
+    const result = getOrCreateTarget(db, '2026-05-19');
+    expect(result.targetCalories).toBe(1600);
   });
 });

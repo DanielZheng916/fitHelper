@@ -445,7 +445,7 @@ Implement all `calorie:*` channel handlers as defined in `systemDesign.md` Secti
 ### 4.4 IPC handlers for Tool 3 — `src/main/ipc/dailyTracker.ts`
 
 Implement all `daily:*` channel handlers:
-- `daily:getTarget` — `SELECT * FROM daily_targets WHERE date = ?`.
+- `daily:getTarget` — delegates to `getOrCreateTarget(db, date)`. If a row exists for the date, returns it. Otherwise inherits `target_calories` from the most recent previous day (falls back to `DEFAULT_TARGET_KCAL = 1800` on first-ever use), auto-creates the row, and returns it.
 - `daily:setTarget` — `INSERT OR REPLACE INTO daily_targets (date, target_calories) VALUES (?, ?)`.
 - `daily:getItems` — `SELECT * FROM daily_items WHERE date = ? ORDER BY sort_order`.
 - `daily:addItem` — `INSERT INTO daily_items ...`, assign `sort_order` as max+1 for the date.

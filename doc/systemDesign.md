@@ -120,6 +120,7 @@ flowchart LR
 **Features**:
 
 - **Daily target**: User sets a calorie goal (e.g., 1800 kcal). Displayed prominently as `current / target` (e.g., `1750/1800`).
+  - **Inheritance**: When a new day has no target yet, the system automatically inherits the most recently set target. If no prior target exists at all (first-time use), the default is **1800 kcal**. This is handled server-side by `getOrCreateTarget()` in `dailyTracker.ts`.
 - **Item list**: Each entry has a name, calorie value, and an **eaten/planned toggle**.
   - Eaten items contribute to the current sum.
   - Planned items (marked with `+` visually) do not count toward the sum yet but are visible for planning.
@@ -315,6 +316,8 @@ Max 10 rows retained; oldest deleted on insert when count > 10.
 | id | INTEGER | PRIMARY KEY AUTOINCREMENT | |
 | date | TEXT | NOT NULL UNIQUE | ISO date "YYYY-MM-DD" |
 | target_calories | INTEGER | NOT NULL | Daily calorie goal |
+
+A row is auto-created on first access for any date. The value is inherited from the most recent previous day's target, or defaults to 1800 kcal if no history exists.
 
 #### Table: `daily_items`
 
